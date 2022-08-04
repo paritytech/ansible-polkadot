@@ -1,0 +1,3 @@
+skip_list:
+  - empty-string-compare  # Don't compare to empty string
+  - experimental  # all rules tagged as experimental

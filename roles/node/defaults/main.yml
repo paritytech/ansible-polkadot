@@ -1,0 +1,222 @@
+---
+
+#####################################################################################
+# Common
+#####################################################################################
+
+# It's used for naming of systemd unit files, binary files, key files etc.
+node_app_name: "{{ node_chain }}"
+# A node will be ran with permissions of this user
+# This user must have the 'node_user_home_path' home directory.
+node_user: "polkadot"
+node_user_home_path: "/home/{{ node_user }}"
+node_data_root_path: "{{ node_user_home_path }}/.local/share/polkadot"
+
+### Binary
+# You have to specify it in your playbook or inventory!
+node_binary: ''
+
+### Node preferences
+# You can redefine any variables from playbooks directly
+# Values from the "_node_profiles" are used by default
+node_in_peers: "{{ _node_profiles[node_role].in_peers }}"
+node_out_peers: "{{ _node_profiles[node_role].out_peers }}"
+node_memory_high: "{{ _node_profiles[node_role].memory_high }}"
+node_memory_max: "{{ _node_profiles[node_role].memory_max }}"
+
+### Role flow
+# Group of variables to manage the flow of the role
+node_binary_deployment: true
+node_chain_deployment: true
+node_systemd_deployment: true
+node_force_restart: false
+# 2 executions of the same role, 2 handlers with the same name are created, and the last one wins.
+# to avoid this set the node_handler_id, it can be set only as play variable not as the host variable.
+# see https://github.com/ansible/ansible/issues/76855
+node_handler_id: ""
+
+#####################################################################################
+# Relaychain
+#####################################################################################
+
+### Main preferences
+# It's used for telemetry
+node_public_name: "{{ inventory_hostname }}"
+# It's role of node. It can be "validator", "boot", "full", "rpc".
+node_role: "full"
+# You have to specify it in your playbook or inventory!
+node_chain: ""
+# Set up name of a chainspec template file from "templates" folder or https url to file.
+# If you set up this option, the "node_chain" option will be ignored
+node_chainspec: ""
+# It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
+node_wasm_runtime: ""
+# List of boot node addresses
+node_chainspec_boot_nodes: []
+
+### Keys
+## p2p key
+# If it's empty, the node will generate default key file
+node_p2p_private_key: ""
+node_p2p_public_key: ""
+
+### Ports and addresses
+## p2p
+node_p2p_bind_addr: "0.0.0.0"
+node_p2p_port: "30333"
+node_p2p_public_port: "{{ node_p2p_port }}"
+# It works only for the 'boot' mode!
+node_p2p_ws_port: "30334"
+## prometheus
+node_prometheus_port: "9615"
+node_prometheus_external_enable: true
+## api
+node_rpc_port: "9933"
+node_rpc_ws_port: "9944"
+node_ws_max_connections: "100"
+
+### Node preferences
+node_paritydb_enable: false
+node_db_cache: 512
+# Set amount of blocks to save in the pruning mode, 0 - pruning mode is disabled
+node_pruning: 0
+# You can specify any custom options as a list
+node_custom_options: []
+#  - "--wasm-execution Compiled"
+#  - "--rpc-methods Unsafe"
+node_enable_detailed_log_output: true
+
+### Backup restoring
+## It works only for networks that have a sync node.
+# Can be "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
+# It will also not perform a restore if the db folder exists and is not empty,
+# unless `node_chain_backup_force_restoring` is enabled
+node_chain_backup_restoring_type: none
+# If disabled, a restore will not be performed if the db folder already exists and not empty
+# Note: if enabled, it will _STOP_ the chain service, delete the db folder and _THEN_ download the backup,
+# which could take a while depending on the size of the backup.
+# So it's better to set `node_chain_backup_tmp_restore_path` when enabling this.
+node_chain_backup_force_restoring: false
+# Link to the tar backup file.
+# If it's empty, the role will download the predefined backup.
+node_chain_backup_url: ""
+# Path where the backup will be downloaded to before it replaces the chain's db folder
+# In this way, we can avoid to stop the node service before downloading and it also allows you to
+# set the path to an additional (temporary) drive you have attached to the VM, should you need the extra space
+node_chain_backup_tmp_restore_path: ""
+
+### Loging and telemetry
+node_telemetry_enable: true
+# If you set an empty value, it will use the default telemetry server
+node_telemetry_url: "wss:/telemetry.polkadot.io/submit/ 1"
+node_log_trace_enable: false
+node_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+# custom labels to be added to journald logs. e.g. "chain=kusama team=kusama-statemint"
+node_syslog_labels: ""
+
+### Role flow
+# Group of variables to manage the flow of the role
+node_db_wipe: false
+
+#####################################################################################
+# Parachain
+#####################################################################################
+
+### Main preferences
+# It's workaround to avoid the issue
+# https://github.com/paritytech/cumulus/issues/556
+# version Collator v5.3.0 and upper has fix, for previous version set to false
+node_parachain_has_name_fix: true
+# It's used for telemetry
+node_parachain_public_name: "{{ inventory_hostname }}"
+# It can be: "collator", "validator", "rpc" or "full".
+node_parachain_role: ""
+# Chain
+node_parachain_chain: ""
+# Set up name of a chainspec file from "templates" folder or https url to file.
+# If you set up this option, the "node_parachain_chain" option will be ignored
+node_parachain_chainspec: ""
+# It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
+node_parachain_wasm_runtime: ""
+# List of boot node addresses
+node_parachain_chainspec_boot_nodes: []
+
+### Keys
+## p2p key
+# If it's empty, the node will generate default key file
+node_parachain_p2p_private_key: ""
+node_parachain_p2p_public_key: ""
+
+### Ports and addresses
+## p2p
+node_parachain_p2p_bind_addr: "0.0.0.0"
+node_parachain_p2p_port: "30343"
+node_parachain_p2p_public_port: "{{ node_parachain_p2p_port }}"
+# It works only for the 'boot' mode!
+node_parachain_p2p_ws_port: "30344"
+## prometheus
+node_parachain_prometheus_port: "9625"
+node_parachain_prometheus_external_enable: true
+## api
+node_parachain_rpc_port: "9943"
+node_parachain_rpc_ws_port: "9954"
+node_parachain_ws_max_connections: "100"
+
+### Node preferences
+node_parachain_paritydb_enable: false
+node_parachain_db_cache: 512
+# You can redefine any variables from playbooks directly
+# Values from the "_node_profiles" are used by default
+node_parachain_in_peers: "25"
+node_parachain_out_peers: "25"
+# Set amount of blocks to save in the pruning mode, 0 - pruning mode is disabled
+node_parachain_pruning: 0
+# You can specify any custom options as a list
+node_parachain_custom_options: []
+#  - "--wasm-execution Compiled"
+#  - "--rpc-methods Unsafe"
+
+### Backup restoring
+## It works only for polkadot, kusama, westend networks.
+# can be "tar" or "none"
+# If it's "none", the role will not restore the blockstore of parachain
+node_parachain_chain_backup_restoring_type: none 
+# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
+node_parachain_chain_backup_force_restoring: false
+# Link to the tar backup file.
+# If it's empty, the role will download the predefined backup.
+node_parachain_chain_backup_url: ""
+
+### Loging and telemetry
+node_parachain_telemetry_enable: true
+# If you set an empty value, it will use the default telemetry server
+node_parachain_telemetry_url: "wss://telemetry.polkadot.io/submit/ 1"
+node_parachain_log_trace_enable: false
+node_parachain_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+
+### Role flow
+# Group of variables to manage the flow of the role
+node_parachain_db_wipe: false
+
+#####################################################################################
+# Memory profiler
+#####################################################################################
+
+node_memory_profiler_enable: false
+node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.8.0/bytehound-x86_64-unknown-linux-gnu.tgz"
+node_memory_profiler_log_path: "{{ node_user_home_path }}/logs"
+node_memory_profiler_log_level: "info"
+
+# This value (in milliseconds) decides which allocations are considered temporary.
+#
+# If an allocation lives longer than this it will be gathered; if it will be deallocated
+# within this time it will be stripped out and *not* emitted.
+#
+# For long-term profiling when searching for memory leaks we want to set this high so that
+# the gathered data file's size doesn't explode.
+#
+# The bigger this value is the higher the memory overhead of the profiler will be.
+# This is due to the fact that the profiler needs to buffer all of the allocations
+# in memory either until they get deallocated or until they'll live longer than whatever
+# threshold is set here.
+node_memory_profiler_temporary_allocation_lifetime_threshold: "120000"

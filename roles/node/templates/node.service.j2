@@ -1,0 +1,25 @@
+[Unit]
+Description={{ node_app_name }} Systemd Service
+
+[Service]
+Restart=always
+RestartSec=90
+EnvironmentFile=/etc/default/polkadot-{{ node_app_name }}
+User={{ node_user }}
+Group={{ node_user }}
+MemoryHigh={{ node_memory_high }}
+MemoryMax={{ node_memory_max }}
+ExecStart={{ _node_binary_file }} \
+    $COMMON \
+{% if node_parachain_role != '' %}
+    $PC_NAME $PC_ROLE_SPECIFIC $PC_KEY $PC_CHAIN $PC_ADDR $PC_CONNECTIONS $PC_DB $PC_TELEMETRY $PC_PRUNING $PC_LOGS $PC_METRICS $PC_WS $PC_RPC $PC_WASM_RUNTIME $PC_CUSTOM_OPTIONS \
+    -- \
+{% endif %}
+    $RC_NAME $RC_ROLE_SPECIFIC $RC_KEY $RC_CHAIN $RC_ADDR $RC_CONNECTIONS $RC_DB $RC_TELEMETRY $RC_PRUNING $RC_LOGS $RC_METRICS $RC_WS $RC_RPC $RC_WASM_RUNTIME $RC_CUSTOM_OPTIONS
+
+{% if node_syslog_labels != '' %}
+SyslogIdentifier={{ node_syslog_labels }}
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

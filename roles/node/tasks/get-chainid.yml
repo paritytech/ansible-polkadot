@@ -1,0 +1,46 @@
+# Relay chain
+- block:
+  - name: Get chain id | Slurp chainspec_file
+    ansible.builtin.slurp:
+      src: "{{ _node_chainspec_file }}"
+    register: _node_current_chainspec
+    when: node_chainspec != ''
+    check_mode: false
+    changed_when: false
+
+  - name: Get chain id | Set chain id 1
+    ansible.builtin.set_fact:
+      _node_chain_id: "{{ (_node_current_chainspec['content'] | b64decode |from_json).id
+                          if node_chainspec != '' else
+                          _node_chain_folders[node_chain]
+                      }}"
+  - name: print _node_chain_id
+    ansible.builtin.debug:
+      var: _node_chain_id
+
+
+  # Parachain
+  - name: Get chain id | Slurp parachain_chainspec_file
+    ansible.builtin.slurp:
+      src: "{{ _node_parachain_chainspec_file }}"
+    register: _node_current_parachain_chainspec
+    when:
+     - node_parachain_role != ''
+     - node_parachain_chainspec != ''
+    check_mode: false
+    changed_when: false
+
+  - name: Get chain id | Set parachain  chain id 1
+    ansible.builtin.set_fact:
+      _node_parachain_chain_id: "{{ (_node_current_parachain_chainspec['content'] | b64decode |from_json).id 
+                           if node_parachain_chainspec != '' else
+                           _node_parachain_chain_folders[node_parachain_chain]
+                      }}"
+    when: node_parachain_role != ''
+
+  - name: print _node_parachain_chain_id
+    ansible.builtin.debug:
+      var: _node_parachain_chain_id
+    when: node_parachain_role != ''
+
+  tags: ['node', 'node-restore-chain', 'node-wipe']

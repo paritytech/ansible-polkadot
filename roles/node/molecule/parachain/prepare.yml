@@ -1,0 +1,7 @@
+- name: Prepare
+  hosts: all
+  gather_facts: true
+  pre_tasks:
+    - name: Prepare | create user parity
+      ansible.builtin.user:
+        name: parity

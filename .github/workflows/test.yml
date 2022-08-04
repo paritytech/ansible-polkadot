@@ -1,0 +1,21 @@
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  molecule:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - run: git config --global --add safe.directory "${{ github.repository }}"
+      - uses: actions/checkout@v2
+        with:
+          path: "${{ github.repository }}"
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - run: pip3 install ansible molecule[docker] yamllint ansible-lint
+      - run: molecule test
+        working-directory: "${{ github.repository }}/roles/node"

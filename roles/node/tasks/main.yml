@@ -1,0 +1,82 @@
+---
+
+- name: Prepare | create user
+  ansible.builtin.user:
+    name: "{{ node_user }}"
+  when: _node_user_home_path_stat.stat.isdir is not defined or not _node_user_home_path_stat.stat.isdir
+
+- name: Polkadot node | Tests
+  import_tasks: tests.yml
+  tags: ['node', 'node-tests']
+
+- name: Polkadot node | Check the systemd unit file exists
+  ansible.builtin.stat:
+    path: "{{ _node_unit_file }}"
+  register: _node_systemd_unit_file_stat
+  tags: ['node', 'node-systemd', 'node-binary', 'node-chain', 'node-restart', 'node-wipe', 'node-restore-chain']
+
+- name: Polkadot node | Wipe
+  include_tasks: wipe.yml
+  when: node_db_wipe | bool or node_parachain_db_wipe | bool
+  tags: ['node', 'node-wipe']
+
+# It will only be run if the systemd service state is 'running'.
+# It should help to avoid the situation when we try to update a broken node.
+- name: Polkadot node | Check the node state before deploying
+  import_tasks: health_check.yml
+  vars:
+    _node_pre_check: true
+  tags: ['node', 'node-health-check', 'node-restore-chain']
+
+- name: Polkadot node | Binary
+  include_tasks: binary.yml
+  when: node_binary_deployment | bool
+  tags: ['node', 'node-binary']
+
+- name: Polkadot node | Chain
+  include_tasks: chain.yml
+  when: node_chain_deployment | bool
+  tags: ['node', 'node-chain']
+
+- name: Polkadot node | Set restore variables 1
+  ansible.builtin.set_fact:
+    _node_restore_relaychain: "{{
+                              node_chain_backup_restoring_type == 'tar' and node_chain_backup_url != ''
+                              }}"
+    _node_restore_parachain: "{{ node_parachain_role != '' and
+                              (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != '')
+                              }}"
+    _node_restore_list: []
+  tags: ['node', 'node-restore-chain']
+
+- name: Polkadot node | Set restore variables (chain id)
+  import_tasks: get-chainid.yml
+  when: _node_restore_relaychain or _node_restore_parachain
+  tags: ['node', 'node-restore-chain']
+
+- name: Polkadot node | Set restore variables 2
+  ansible.builtin.set_fact:
+    _node_restore_list: "{{ _node_restore_list + [_node_chain_backup_data] }}"
+  when: _node_restore_relaychain
+  tags: ['node', 'node-restore-chain']
+
+- name: Polkadot node | Set restore variables 3
+  ansible.builtin.set_fact:
+    _node_restore_list: "{{ _node_restore_list + [_node_parachain_chain_backup_data] }}"
+  when: _node_restore_parachain
+  tags: ['node', 'node-restore-chain']
+
+- name: Polkadot node | Restore chain
+  include_tasks: restore-chain.yml
+  loop: "{{ _node_restore_list }}"
+  tags: ['node', 'node-restore-chain']
+
+- name: Polkadot node | Systemd
+  include_tasks: systemd.yml
+  when: node_systemd_deployment | bool
+  tags: ['node', 'node-systemd']
+
+- name: Polkadot node | Restart
+  include_tasks: restart.yml
+  when: node_force_restart | bool
+  tags: ['node', 'node-restart']

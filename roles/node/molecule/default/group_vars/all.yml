@@ -1,0 +1,12 @@
+## Molecule
+ansible_user: root
+## Node
+node_chain: polkadot
+node_binary: 'https://github.com/paritytech/polkadot/releases/download/v0.9.18/polkadot'
+node_chain_backup_restoring_type: "none"
+node_parachain_chain_backup_restoring_type: "none"
+node_p2p_public_key: 12D3KooWRYb7Z2gsZDNCmPN18dBLtM3BD1FEn2RTnauUAe5aPMf8
+# This private key is only for modulecule tests
+# Note: don't modify this key either, because the last character (which is invisible here) is special
+# and without it, subkey won't be able to work with it
+node_p2p_private_key: a4964e8e979c29fcdd79403db8c374cae91857e69a13162f7664a6529bd66093

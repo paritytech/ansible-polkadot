@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include node"
+      ansible.builtin.include_role:
+        name: "node"

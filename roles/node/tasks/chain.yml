@@ -1,0 +1,150 @@
+---
+
+- block:
+
+  - name: Systemd | Create directories
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      mode: '0755'
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+    loop:
+      - "{{ _node_chainspec_file | dirname }}"
+      - "{{ _node_wasm_runtime_base_path }}"
+      - "{{ _node_p2p_key_file | dirname }}"
+    register: _node_create_directories_register
+
+  - name: Chain | Copy {{ node_app_name }} chainspec files
+    ansible.builtin.template:
+      src: "{{ node_chainspec }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_chainspec_file }}"
+      mode: 0644
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_chainspec != '' and not node_chainspec.startswith('http')
+
+  - name: Chain | Download {{ node_app_name }} chainspec files
+    ansible.builtin.get_url:
+      url: "{{ node_chainspec }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_chainspec_file }}"
+      mode: 0644
+      force: true
+    notify: restart service {{ node_handler_id }}
+    when:
+      - node_chainspec != ''
+      - node_chainspec.startswith('http')
+      - not ansible_check_mode # (Bug ansible/ansible#65687)
+
+  - name: Chain | Copy {{ node_app_name }} parachain chainspec file
+    ansible.builtin.template:
+      src: "{{ node_parachain_chainspec }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_parachain_chainspec_file }}"
+      mode: 0644
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_parachain_role != '' and node_parachain_chainspec != '' and not node_parachain_chainspec.startswith('http')
+
+  - name: Chain | Download {{ node_app_name }} parachain chainspec file
+    ansible.builtin.get_url:
+      url: "{{ node_parachain_chainspec }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_parachain_chainspec_file }}"
+      mode: 0644
+      force: true
+    notify: restart service {{ node_handler_id }}
+    when:
+      - node_parachain_role != ''
+      - node_parachain_chainspec != ''
+      - node_parachain_chainspec.startswith('http')
+      - not ansible_check_mode # (Bug ansible/ansible#65687)
+
+  - name: Chain | Download {{ node_app_name }} wasm runtime file
+    ansible.builtin.get_url:
+      url: "{{ node_wasm_runtime }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_wasm_runtime_base_path }}/relaychain.wasm"
+      mode: 0644
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_wasm_runtime != ''
+
+  - name: Chain | Download {{ node_app_name }} parachain wasm runtime file
+    ansible.builtin.get_url:
+      url: "{{ node_parachain_wasm_runtime }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_wasm_runtime_base_path }}/parachain.wasm"
+      mode: 0644
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_parachain_role != '' and node_parachain_wasm_runtime != ''
+
+  - name: Chain | Find unmanaged {{ node_app_name }} wasm runtime file
+    ansible.builtin.find:
+      paths: "{{ _node_wasm_runtime_base_path }}"
+      patterns: "^((?!relaychain.wasm|parachain.wasm).)*$"
+      use_regex: true
+    register: _node_unmanaged_wasm_runtime_files
+
+  - name: Chain | Delete unmanaged {{ node_app_name }} wasm runtime file
+    ansible.builtin.file:
+      path: "{{ item.path }}"
+      state: absent
+    loop: "{{ _node_unmanaged_wasm_runtime_files.files }}"
+    notify: restart service {{ node_handler_id }}
+
+  - name: Chain | Copy {{ node_app_name }} p2p key file
+    ansible.builtin.copy:
+      content: "{{ node_p2p_private_key }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_p2p_key_file }}"
+      mode: 0600
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_p2p_private_key != ''
+
+  - name: Chain | Install subkey for libp2p (node key) test
+    ansible.builtin.get_url:
+      url: "{{ _node_subkey_url }}"
+      dest: "{{ _node_subkey_local_path }}"
+      mode: 0775
+    check_mode: false
+    when: node_p2p_public_key != '' and node_p2p_private_key != ''
+
+  - name: Chain | Generate libp2p public key
+    ansible.builtin.command: "{{ _node_subkey_local_path }} inspect-node-key --file {{ _node_p2p_key_file }}"
+    changed_when: false
+    check_mode: false
+    register: _node_pubkey_result
+    when:  node_p2p_public_key != '' and node_p2p_private_key != ''
+
+  - name: Chain | Fail if libp2p keypair doesn't match
+    ansible.builtin.fail:
+      msg: The libp2p private key doesn't match the public key. Please verify and correct
+    when:
+      - node_p2p_public_key != ''
+      - node_p2p_private_key != ''
+      - _node_pubkey_result.stdout != node_p2p_public_key
+
+  - name: Chain | Copy {{ node_app_name }} parachain p2p key file
+    ansible.builtin.copy:
+      content: "{{ node_parachain_p2p_private_key }}"
+      owner: "{{ node_user }}"
+      group: "{{ node_user }}"
+      dest: "{{ _node_parachain_p2p_key_file }}"
+      mode: 0600
+    notify: restart service {{ node_handler_id }}
+    ignore_errors: "{{ _node_create_directories_register.changed }}"
+    when: node_parachain_role != '' and node_parachain_p2p_private_key != ''
+
+  tags: ['node', 'node-chain']
