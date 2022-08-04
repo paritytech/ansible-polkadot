@@ -1,4 +1,4 @@
-# Ansible Collection - infrastructure.chain_operations
+# Ansible Collection - paritytech.chain_operations
 
 ## Install Ansible collections
 
