@@ -2,9 +2,13 @@
 dependency:
   name: galaxy
 driver:
-  name: docker
+  name: ${DRIVER:-docker}
 platforms:
   - name: instance
+    # LXD
+    source:
+      alias: debian/bullseye/amd64
+    # DOCKER
     image: "docker.io/paritytech/debian10:latest"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     # need this for systemctl work
@@ -16,6 +20,8 @@ platforms:
 
 provisioner:
   name: ansible
+  options:
+    D: True
 verifier:
   name: ansible
 lint: |

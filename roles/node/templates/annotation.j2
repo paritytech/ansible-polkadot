@@ -1,0 +1,1 @@
+ansible_annotation{role="{{ node_role }}",version="{{ _node_binary_version_from_url }}",commit_hash="{{ _node_commit_hash }}",event="{{ node_ansible_annotation_event }}",{% if node_parachain_chain != '' %}chain="{{ node_parachain_chain }}"{%- else %}chain="{{ node_chain }}"{% endif %}} 1

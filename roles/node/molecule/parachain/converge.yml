@@ -1,6 +1,7 @@
 ---
 - name: Converge
   hosts: all
+  gather_facts: true
   tasks:
     - name: "Include node"
       ansible.builtin.include_role:

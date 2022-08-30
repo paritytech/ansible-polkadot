@@ -7,14 +7,14 @@
 # It's used for naming of systemd unit files, binary files, key files etc.
 node_app_name: "{{ node_chain }}"
 # A node will be ran with permissions of this user
-# This user must have the 'node_user_home_path' home directory.
 node_user: "polkadot"
-node_user_home_path: "/home/{{ node_user }}"
-node_data_root_path: "{{ node_user_home_path }}/.local/share/polkadot"
+# if it's empty, the '(home directory of node_user)/.local/share/polkadot' directory will be used
+node_data_root_path: ""
 
 ### Binary
 # You have to specify it in your playbook or inventory!
 node_binary: ''
+node_binary_download_private_token: "{{ gitlab_private_token | default(omit) }}"
 
 ### Node preferences
 # You can redefine any variables from playbooks directly
@@ -35,6 +35,10 @@ node_force_restart: false
 # see https://github.com/ansible/ansible/issues/76855
 node_handler_id: ""
 
+### File used for Ansible annotation
+# Default value in common/prometheus_node_exporter
+node_ansible_annotation_path: ""
+node_ansible_annotation_event: "node_playbook"
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -88,18 +92,25 @@ node_enable_detailed_log_output: true
 
 ### Backup restoring
 ## It works only for networks that have a sync node.
-# Can be "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
+# Can be "gcp", "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
 # It will also not perform a restore if the db folder exists and is not empty,
 # unless `node_chain_backup_force_restoring` is enabled
 node_chain_backup_restoring_type: none
-# If disabled, a restore will not be performed if the db folder already exists and not empty
-# Note: if enabled, it will _STOP_ the chain service, delete the db folder and _THEN_ download the backup,
-# which could take a while depending on the size of the backup.
-# So it's better to set `node_chain_backup_tmp_restore_path` when enabling this.
-node_chain_backup_force_restoring: false
+# Name of a folder that is used by different networks to store chain.
+# The role needs the variable to find the right path to restore a backup. It's equal a chain ID in a chainspec.
+# You can find some chain IDs in README.md
+node_chain_backup_chain_path: ""
 # Link to the tar backup file.
-# If it's empty, the role will download the predefined backup.
+# A tar archive must contain database on the root level
 node_chain_backup_url: ""
+# You can find the structure of a bucket in README.md
+node_chain_backup_gcp_bucket: ""
+# Link to a gcp backup, you have to specify a full path including a bucket name.
+node_chain_backup_gcp_path: ""
+# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
+# It works only for diff sync restoring types, there is only one now - gcp.
+# It can be useful if you want to restore a broken db very quickly.
+node_chain_backup_force_restoring: false
 # Path where the backup will be downloaded to before it replaces the chain's db folder
 # In this way, we can avoid to stop the node service before downloading and it also allows you to
 # set the path to an additional (temporary) drive you have attached to the VM, should you need the extra space
@@ -178,14 +189,25 @@ node_parachain_custom_options: []
 
 ### Backup restoring
 ## It works only for polkadot, kusama, westend networks.
-# can be "tar" or "none"
+# can be "gcp", "tar" or "none"
 # If it's "none", the role will not restore the blockstore of parachain
-node_parachain_chain_backup_restoring_type: none 
-# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
-node_parachain_chain_backup_force_restoring: false
+node_parachain_chain_backup_restoring_type: none
+# Name of a folder that is used by different parachain networks to store chain.
+# The role needs the variable to find the right path to restore a backup. It's equal a chain ID in a chainspec.
+# You can find some chain IDs in README.md
+node_parachain_chain_backup_chain_path: ""
 # Link to the tar backup file.
-# If it's empty, the role will download the predefined backup.
+# A tar archive must contain database on the root level
 node_parachain_chain_backup_url: ""
+# GCP bucket that contains backups. Format is 'gs://bucket-name/'.
+# You can find the structure of a bucket in README.md
+node_parachain_chain_backup_gcp_bucket: ""
+# Link to a gcp backup, you have to specify a full path including a bucket name.
+node_parachain_chain_backup_gcp_path: ""
+# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
+# It works only for diff sync restoring types, there is only one now - gcp.
+# It can be useful if you want to restore a broken db very quickly.
+node_parachain_chain_backup_force_restoring: false
 
 ### Loging and telemetry
 node_parachain_telemetry_enable: true
@@ -203,8 +225,9 @@ node_parachain_db_wipe: false
 #####################################################################################
 
 node_memory_profiler_enable: false
-node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.8.0/bytehound-x86_64-unknown-linux-gnu.tgz"
-node_memory_profiler_log_path: "{{ node_user_home_path }}/logs"
+node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.9.0/bytehound-x86_64-unknown-linux-gnu.tgz"
+# if it's empty, the '(home directory of node_user)/logs' directory will be used
+node_memory_profiler_log_path: ""
 node_memory_profiler_log_level: "info"
 
 # This value (in milliseconds) decides which allocations are considered temporary.

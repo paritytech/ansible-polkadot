@@ -1,82 +1,108 @@
 ---
 
-- name: Prepare | create user
-  ansible.builtin.user:
-    name: "{{ node_user }}"
-  when: _node_user_home_path_stat.stat.isdir is not defined or not _node_user_home_path_stat.stat.isdir
-
-- name: Polkadot node | Tests
-  import_tasks: tests.yml
+- name: node | Tests
+  ansible.builtin.include_tasks:
+    file: 100-tests.yml
+    apply:
+      tags: ['node', 'node-tests']
   tags: ['node', 'node-tests']
 
-- name: Polkadot node | Check the systemd unit file exists
+- name: node | Check the systemd unit file exists
   ansible.builtin.stat:
     path: "{{ _node_unit_file }}"
   register: _node_systemd_unit_file_stat
   tags: ['node', 'node-systemd', 'node-binary', 'node-chain', 'node-restart', 'node-wipe', 'node-restore-chain']
 
-- name: Polkadot node | Wipe
-  include_tasks: wipe.yml
+- name: node | Prepare
+  ansible.builtin.include_tasks:
+    file: 200-prepare.yml
+    apply:
+      tags: ['node', 'node-prepare']
+  tags: ['node', 'node-prepare']
+
+- name: node | Wipe
+  ansible.builtin.include_tasks:
+    file: 300-wipe.yml
+    apply:
+      tags: ['node', 'node-wipe']
   when: node_db_wipe | bool or node_parachain_db_wipe | bool
   tags: ['node', 'node-wipe']
 
 # It will only be run if the systemd service state is 'running'.
 # It should help to avoid the situation when we try to update a broken node.
-- name: Polkadot node | Check the node state before deploying
-  import_tasks: health_check.yml
+- name: node | Check the node state before deploying
+  ansible.builtin.include_tasks:
+    file: 001-health-check.yml
+    apply:
+      tags: ['node', 'node-health-check']
   vars:
     _node_pre_check: true
   tags: ['node', 'node-health-check', 'node-restore-chain']
 
-- name: Polkadot node | Binary
-  include_tasks: binary.yml
+- name: node | Binary
+  ansible.builtin.include_tasks:
+    file: 400-binary.yml
+    apply:
+      tags: ['node', 'node-binary']
   when: node_binary_deployment | bool
   tags: ['node', 'node-binary']
 
-- name: Polkadot node | Chain
-  include_tasks: chain.yml
+- name: node | Memory profiler
+  ansible.builtin.include_tasks:
+    file: 500-memory-profiler.yml
+    apply:
+      tags: ['node', 'node-memory-profiler']
+  when: node_memory_profiler_enable | bool
+  tags: ['node', 'node-memory-profiler']
+
+- name: node | Chain
+  ansible.builtin.include_tasks:
+    file: 600-chain.yml
+    apply:
+      tags: ['node', 'node-chain']
   when: node_chain_deployment | bool
   tags: ['node', 'node-chain']
 
-- name: Polkadot node | Set restore variables 1
-  ansible.builtin.set_fact:
-    _node_restore_relaychain: "{{
-                              node_chain_backup_restoring_type == 'tar' and node_chain_backup_url != ''
-                              }}"
-    _node_restore_parachain: "{{ node_parachain_role != '' and
-                              (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != '')
-                              }}"
-    _node_restore_list: []
-  tags: ['node', 'node-restore-chain']
-
-- name: Polkadot node | Set restore variables (chain id)
-  import_tasks: get-chainid.yml
+- name: node | Set restore variables (chain id)
+  ansible.builtin.include_tasks:
+    file: 700-get-chainid.yml
+    apply:
+      tags: ['node', 'node-restore-chain']
   when: _node_restore_relaychain or _node_restore_parachain
   tags: ['node', 'node-restore-chain']
 
-- name: Polkadot node | Set restore variables 2
+- name: node | Set restore variables 1
   ansible.builtin.set_fact:
     _node_restore_list: "{{ _node_restore_list + [_node_chain_backup_data] }}"
   when: _node_restore_relaychain
   tags: ['node', 'node-restore-chain']
 
-- name: Polkadot node | Set restore variables 3
+- name: node | Set restore variables 2
   ansible.builtin.set_fact:
     _node_restore_list: "{{ _node_restore_list + [_node_parachain_chain_backup_data] }}"
   when: _node_restore_parachain
   tags: ['node', 'node-restore-chain']
 
-- name: Polkadot node | Restore chain
-  include_tasks: restore-chain.yml
+- name: node | Restore chain
+  ansible.builtin.include_tasks:
+    file: 800-restore-chain.yml
+    apply:
+      tags: ['node', 'node-restore-chain']
   loop: "{{ _node_restore_list }}"
   tags: ['node', 'node-restore-chain']
 
-- name: Polkadot node | Systemd
-  include_tasks: systemd.yml
+- name: node | Systemd
+  ansible.builtin.include_tasks:
+    file: 900-systemd.yml
+    apply:
+      tags: ['node', 'node-systemd']
   when: node_systemd_deployment | bool
   tags: ['node', 'node-systemd']
 
-- name: Polkadot node | Restart
-  include_tasks: restart.yml
+- name: node | Restart
+  ansible.builtin.include_tasks:
+    file: 002-restart.yml
+    apply:
+      tags: ['node', 'node-restart']
   when: node_force_restart | bool
   tags: ['node', 'node-restart']
