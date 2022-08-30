@@ -63,24 +63,12 @@
   when: node_chain_deployment | bool
   tags: ['node', 'node-chain']
 
-- name: node | Set restore variables (chain id)
+- name: node | Get chain IDs
   ansible.builtin.include_tasks:
     file: 700-get-chainid.yml
     apply:
       tags: ['node', 'node-restore-chain']
   when: _node_restore_relaychain or _node_restore_parachain
-  tags: ['node', 'node-restore-chain']
-
-- name: node | Set restore variables 1
-  ansible.builtin.set_fact:
-    _node_restore_list: "{{ _node_restore_list + [_node_chain_backup_data] }}"
-  when: _node_restore_relaychain
-  tags: ['node', 'node-restore-chain']
-
-- name: node | Set restore variables 2
-  ansible.builtin.set_fact:
-    _node_restore_list: "{{ _node_restore_list + [_node_parachain_chain_backup_data] }}"
-  when: _node_restore_parachain
   tags: ['node', 'node-restore-chain']
 
 - name: node | Restore chain

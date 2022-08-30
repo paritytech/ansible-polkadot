@@ -49,7 +49,16 @@ _node_profiles:
     memory_high: "5400M"
     memory_max: "5500M"
 
-_node_restore_list: []
+_node_restore_list:
+  "{% if _node_restore_relaychain and not _node_restore_parachain -%}
+  {{ [_node_chain_backup_data] }}
+  {%- elif not _node_restore_relaychain and _node_restore_parachain -%}
+  {{ [_node_parachain_chain_backup_data] }}
+  {%- elif _node_restore_relaychain and _node_restore_parachain -%}
+  {{ [_node_chain_backup_data, _node_parachain_chain_backup_data] }}
+  {%- else -%}
+  {{ [] }}
+  {%- endif %}"
 
 #####################################################################################
 # Relaychain
