@@ -38,8 +38,8 @@ node_handler_id: ""
 ### File used for Ansible annotation
 # File name for prometheus node-exporter textfile collector
 # Example:  /var/lib/prometheus/node-exporter/substrate.prom
-node_ansible_annotation_path: ""
-node_ansible_annotation_event: "node_playbook"
+node_prometheus_file_exporter_path: ""
+node_prometheus_file_exporter_event: "node_playbook"
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -56,8 +56,6 @@ node_chain: ""
 node_chainspec: ""
 # It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
 node_wasm_runtime: ""
-# List of boot node addresses
-node_chainspec_boot_nodes: []
 
 ### Keys
 ## p2p key
@@ -128,7 +126,7 @@ node_syslog_labels: ""
 
 ### Role flow
 # Group of variables to manage the flow of the role
-node_db_wipe: false
+node_database_wipe: false
 
 #####################################################################################
 # Parachain
@@ -150,8 +148,6 @@ node_parachain_chain: ""
 node_parachain_chainspec: ""
 # It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
 node_parachain_wasm_runtime: ""
-# List of boot node addresses
-node_parachain_chainspec_boot_nodes: []
 
 ### Keys
 ## p2p key
@@ -219,7 +215,7 @@ node_parachain_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=tra
 
 ### Role flow
 # Group of variables to manage the flow of the role
-node_parachain_db_wipe: false
+node_parachain_database_wipe: false
 
 #####################################################################################
 # Memory profiler

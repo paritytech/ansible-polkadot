@@ -102,9 +102,9 @@
   - name: Binary | Create annotation in Prometheus
     ansible.builtin.template:
       src: annotation.j2
-      dest: "{{ node_ansible_annotation_path }}"
+      dest: "{{ node_prometheus_file_exporter_path }}"
       owner: root
       group: root
       mode: '0644'
 
-  when: node_ansible_annotation_path != ''
+  when: node_prometheus_file_exporter_path != ''

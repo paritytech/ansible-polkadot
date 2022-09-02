@@ -19,7 +19,7 @@
   register: _node_wipe_results
   until: not _node_wipe_results.failed
   delay: "60"
-  when: node_db_wipe | bool
+  when: node_database_wipe | bool
 
 - name: Wipe | Delete parachain DB
   ansible.builtin.file:
@@ -32,4 +32,4 @@
   register: _node_wipe_results
   until: not _node_wipe_results.failed
   delay: "60"
-  when: node_parachain_role != '' and (node_parachain_db_wipe | bool)
+  when: node_parachain_role != '' and (node_parachain_database_wipe | bool)

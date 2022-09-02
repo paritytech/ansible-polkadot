@@ -49,8 +49,8 @@ _node_profiles:
     memory_high: "5400M"
     memory_max: "5500M"
 
-_node_restore_list:
-  "{% if _node_restore_relaychain and not _node_restore_parachain -%}
+_node_restore_list: "
+  {%- if _node_restore_relaychain and not _node_restore_parachain -%}
   {{ [_node_chain_backup_data] }}
   {%- elif not _node_restore_relaychain and _node_restore_parachain -%}
   {{ [_node_parachain_chain_backup_data] }}
@@ -60,6 +60,7 @@ _node_restore_list:
   {{ [] }}
   {%- endif %}"
 
+
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -67,9 +68,6 @@ _node_restore_list:
 _node_data_chain_path: "{{ _node_data_root_path }}{% if node_parachain_role != '' %}/polkadot{% endif %}/chains/{{ _node_chain_id }}"
 _node_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_relaychain_p2p_key"
 _node_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_relaychain_chainspec.json"
-
-# EXCEPTION: if the folder name in the bucket contains a different name than `node_chain`, you can add it here
-_node_chain_gcp_backup_folder:
 
 _node_restore_relaychain: "{{
                             (node_chain_backup_restoring_type == 'gcp' and ( node_chain_backup_gcp_bucket != '' or node_chain_backup_gcp_path != '')) or
@@ -82,7 +80,7 @@ _node_chain_backup_data:
   chain_path: "{{ _node_data_chain_path }}"
   tar_url: "{{ node_chain_backup_url }}"
   gcp_path: "{{ node_chain_backup_gcp_bucket +
-  _node_chain_gcp_backup_folder[node_chain] | default(node_chain) +
+  node_chain +
   ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive') }}"
   custom_gcp_path: "{{ node_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_paritydb_enable else 'db' }}"
@@ -107,7 +105,7 @@ _node_parachain_chain_backup_data:
   chain_path: "{{ _node_parachain_data_chain_path }}"
   tar_url: "{{ node_parachain_chain_backup_url }}"
   gcp_path: "{{ node_parachain_chain_backup_gcp_bucket +
-  _node_parachain_gcp_backup_folder[node_parachain_chain] | default(node_parachain_chain) +
+  node_parachain_chain +
   ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
   custom_gcp_path: "{{ node_parachain_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_parachain_paritydb_enable else 'db' }}"

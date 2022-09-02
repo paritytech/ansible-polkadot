@@ -11,7 +11,7 @@ node_p2p_public_key: 12D3KooWRYb7Z2gsZDNCmPN18dBLtM3BD1FEn2RTnauUAe5aPMf8
 # Note: don't modify this key either, because the last character (which is invisible here) is special
 # and without it, subkey won't be able to work with it
 node_p2p_private_key: a4964e8e979c29fcdd79403db8c374cae91857e69a13162f7664a6529bd66093
-node_ansible_annotation_path: "/tmp/substrate.prom"
+node_prometheus_file_exporter_path: "/tmp/substrate.prom"
 
 node_data_root_path: "/opt/polkadot-root"
 node_memory_profiler_log_path: "/opt/polkadot-root-logs"

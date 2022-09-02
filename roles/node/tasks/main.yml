@@ -25,7 +25,7 @@
     file: 300-wipe.yml
     apply:
       tags: ['node', 'node-wipe']
-  when: node_db_wipe | bool or node_parachain_db_wipe | bool
+  when: node_database_wipe | bool or node_parachain_database_wipe | bool
   tags: ['node', 'node-wipe']
 
 # It will only be run if the systemd service state is 'running'.

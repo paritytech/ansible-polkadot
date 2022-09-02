@@ -5,7 +5,7 @@ ansible_user: root
 node_binary_version: "v0.9.270"
 node_binary: "https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain"
 node_app_name: "shell"
-node_ansible_annotation_path: "/tmp/substrate.prom"
+node_prometheus_file_exporter_path: "/tmp/substrate.prom"
 #node_binary_deployment: false
 
 # Relaychain

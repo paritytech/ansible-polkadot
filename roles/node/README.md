@@ -28,7 +28,7 @@ You can find all available variables in the `vars/main.yml` file.
 
 ### Wipe block storage before deploying
 
-`ansible-playbook --tags "node" -e "node_db_wipe=true" -e "node_parachain_db_wipe=true" playbook.yml`
+`ansible-playbook --tags "node" -e "node_database_wipe=true" -e "node_parachain_database_wipe=true" playbook.yml`
 
 ```yaml
 - hosts: host1
@@ -36,8 +36,8 @@ You can find all available variables in the `vars/main.yml` file.
   roles:
     - node
   vars:
-    node_db_wipe: true
-    node_parachain_db_wipe: true
+    node_database_wipe: true
+    node_parachain_database_wipe: true
 ```
 
 ### Restart nodes only
