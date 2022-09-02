@@ -36,7 +36,8 @@ node_force_restart: false
 node_handler_id: ""
 
 ### File used for Ansible annotation
-# Default value in common/prometheus_node_exporter
+# File name for prometheus node-exporter textfile collector
+# Example:  /var/lib/prometheus/node-exporter/substrate.prom
 node_ansible_annotation_path: ""
 node_ansible_annotation_event: "node_playbook"
 #####################################################################################
