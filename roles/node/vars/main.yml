@@ -24,7 +24,7 @@ _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
 _node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
 _node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"
 
-_node_subkey_url: https://s3.eu-central-1.amazonaws.com/releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
+_node_subkey_url: https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
 _node_subkey_local_path: "{{ _node_binary_path }}/subkey"
 
 _node_profiles:
