@@ -1,7 +1,7 @@
 - name: Prepare
   hosts: all
-  gather_facts: true
+  gather_facts: false
   pre_tasks:
-    - name: Prepare | create user parity
-      ansible.builtin.user:
-        name: "{{ node_user }}"
+    - name: Install Python3
+      ansible.builtin.raw: apt -y update && apt install -y python3
+      changed_when: false

@@ -13,3 +13,70 @@
   - name: check service
     ansible.builtin.assert:
       that: ansible_facts.services['polkadot.service'].state == 'running'
+
+  - name: Get system_health
+    ansible.builtin.uri:
+      url: 'http://127.0.0.1:9933'
+      method: POST
+      body:
+        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
+      body_format: json
+      headers:
+        Content-Type: 'application/json'
+    register: _system_health_result
+
+  - name: Print system_syncState
+    ansible.builtin.debug:
+      msg: "{{ _system_health_result.json }}"
+
+  - name: re-deploy node with wipe
+    ansible.builtin.include_role:
+      name: "node"
+    vars:
+      node_db_wipe: true
+      node_parachain_database_wipe: true
+
+  - name: Collect service facts
+    ansible.builtin.service_facts:
+
+  - name: Print service facts
+    ansible.builtin.debug:
+      var: ansible_facts.services['polkadot.service']
+
+  - name: check service
+    ansible.builtin.assert:
+      that: ansible_facts.services['polkadot.service'].state == 'running'
+
+  - name: Get system_health
+    ansible.builtin.uri:
+      url: 'http://127.0.0.1:9933'
+      method: POST
+      body:
+        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
+      body_format: json
+      headers:
+        Content-Type: 'application/json'
+    register: _system_health_result
+
+  - name: Print system_health
+    ansible.builtin.debug:
+      msg: "{{ _system_health_result.json }}"
+
+  - name: chain syncing
+    ansible.builtin.assert:
+      that: _system_health_result.json['result']['isSyncing']
+
+  - name: Get system_syncState
+    ansible.builtin.uri:
+      url: 'http://127.0.0.1:9933'
+      method: POST
+      body:
+        {"id":1, "jsonrpc":"2.0", "method":"system_syncState", "params":[]}
+      body_format: json
+      headers:
+        Content-Type: 'application/json'
+    register: _system_syncstate_result
+
+  - name: Print system_syncState
+    ansible.builtin.debug:
+      msg: "{{ _system_syncstate_result.json }}"

@@ -2,7 +2,7 @@
 
 - name: Health check | Collect service facts
   ansible.builtin.service_facts:
-  tags: ['node', 'node-health-check', 'node-restore-chain']
+  tags: ['node-restore-chain']
 
 - name: Health check | Fail is service is not running
   ansible.builtin.fail:
@@ -11,7 +11,9 @@
     - ansible_facts.services[node_app_name+'.service'] is defined
     - ansible_facts.services[node_app_name+'.service'].state != 'running'
     - not (_node_pre_check | default(false))
-  tags: ['node', 'node-health-check']
+
+- debug:
+    var: ansible_facts.services[node_app_name+'.service'].state
 
 - block:
 
@@ -62,5 +64,4 @@
       msg: "The current version is {{ _node_version_check_register.json.result }}"
 
   when: ansible_facts.services[node_app_name+'.service'] is defined and
-        ansible_facts.services[node_app_name+'.service'].state != 'stopped'
-  tags: ['node', 'node-health-check']
+        ansible_facts.services[node_app_name+'.service'].state not in ['stopped', 'inactive']

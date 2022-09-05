@@ -7,8 +7,8 @@
     ansible.builtin.include_role:
       name: "node"
     vars:
-      node_db_wipe: true
-      node_parachain_db_wipe: true
+      node_database_wipe: true
+      node_parachain_database_wipe: true
 
   - name: Collect service facts
     ansible.builtin.service_facts:

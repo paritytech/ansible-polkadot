@@ -1,0 +1,34 @@
+---
+
+- name: Prepare | Create user
+  ansible.builtin.user:
+    name: "{{ node_user }}"
+    shell: /sbin/nologin
+  register: _node_user_stat
+
+- name: Prepare | Setup '_node_user_home_path' variable
+  ansible.builtin.set_fact:
+    _node_user_home_path: "{{ _node_user_stat.home }}"
+
+- name: Prepare | Check '_node_user_home_path' variable 1
+  ansible.builtin.stat:
+    path: "{{ _node_user_home_path }}"
+  register: _node_user_home_path_stat
+
+- name: Prepare | Check '_node_user_home_path' variable 2
+  ansible.builtin.fail:
+    msg: "The user home dir {{ _node_user_home_path }} must be created!"
+  when: _node_user_home_path_stat.stat.isdir is not defined or not _node_user_home_path_stat.stat.isdir
+  ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
+
+- name: Prepare | Print _node_user_home_path
+  debug:
+    var: _node_user_home_path
+
+- name: Prepare | Print _node_data_root_path
+  debug:
+    var: _node_data_root_path
+
+- name: Prepare | Print _node_memory_profiler_log_path
+  debug:
+    var: _node_memory_profiler_log_path

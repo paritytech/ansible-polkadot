@@ -4,14 +4,28 @@
 # Common
 #####################################################################################
 
-_node_binary_path: "{{ node_user_home_path }}/bin"
+# https://semver.org/
+_node_semver_regex: '^.*((?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))(?:-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?).*$'
+_node_binary_version_from_url: "{{ (node_binary | regex_search(_node_semver_regex, '\\1'))[0] }}"
+
+_node_data_root_path: "{% if node_data_root_path != '' -%}
+  {{ node_data_root_path }}
+  {%- else -%}
+  {{ _node_user_home_path }}/.local/share/polkadot
+  {%- endif %}"
+_node_memory_profiler_log_path: "{% if node_memory_profiler_log_path != '' -%}
+  {{ node_memory_profiler_log_path }}
+  {%- else -%}
+  {{ _node_user_home_path }}/logs
+  {%- endif %}"
+_node_binary_path: "{{ _node_user_home_path }}/bin"
 _node_binary_file: "{{ _node_binary_path }}/{{ node_app_name }}"
 _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
-_node_wasm_runtime_base_path: "{{ node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
+_node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
 _node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"
 
-_node_subkey_url: https://s3.eu-central-1.amazonaws.com/releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
-_node_subkey_local_path: /usr/local/bin/subkey
+_node_subkey_url: https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
+_node_subkey_local_path: "{{ _node_binary_path }}/subkey"
 
 _node_profiles:
   validator:
@@ -35,29 +49,40 @@ _node_profiles:
     memory_high: "5400M"
     memory_max: "5500M"
 
+_node_restore_list: "
+  {%- if _node_restore_relaychain and not _node_restore_parachain -%}
+  {{ [_node_chain_backup_data] }}
+  {%- elif not _node_restore_relaychain and _node_restore_parachain -%}
+  {{ [_node_parachain_chain_backup_data] }}
+  {%- elif _node_restore_relaychain and _node_restore_parachain -%}
+  {{ [_node_chain_backup_data, _node_parachain_chain_backup_data] }}
+  {%- else -%}
+  {{ [] }}
+  {%- endif %}"
+
 
 #####################################################################################
 # Relaychain
 #####################################################################################
 
-_node_data_chain_path: "{{ node_data_root_path }}{% if node_parachain_role != '' %}/polkadot{% endif %}/chains/{{ _node_chain_id }}"
-_node_p2p_key_file: "{{ node_user_home_path }}/keys/{{ node_app_name }}_relaychain_p2p_key"
-_node_chainspec_file: "{{ node_user_home_path }}/chainspecs/{{ node_app_name }}_relaychain_chainspec.json"
+_node_data_chain_path: "{{ _node_data_root_path }}{% if node_parachain_role != '' %}/polkadot{% endif %}/chains/{{ _node_chain_id }}"
+_node_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_relaychain_p2p_key"
+_node_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_relaychain_chainspec.json"
 
-_node_chain_folders:
-  polkadot: "polkadot"
-  kusama: "ksmcc3"
-  westend: "westend2"
-  rococo:  "rococo_v2_2"
-
-# EXCEPTION: if the folder name in the bucket contains a different name than `node_chain`, you can add it here
-
+_node_restore_relaychain: "{{
+                            (node_chain_backup_restoring_type == 'gcp' and ( node_chain_backup_gcp_bucket != '' or node_chain_backup_gcp_path != '')) or
+                            (node_chain_backup_restoring_type == 'tar' and node_chain_backup_url != '')
+                            }}"
 _node_chain_backup_data:
   part: relaychain
   restoring_type: "{{ node_chain_backup_restoring_type }}"
   force_restoring: "{{ node_chain_backup_force_restoring }}"
   chain_path: "{{ _node_data_chain_path }}"
   tar_url: "{{ node_chain_backup_url }}"
+  gcp_path: "{{ node_chain_backup_gcp_bucket +
+  node_chain +
+  ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive') }}"
+  custom_gcp_path: "{{ node_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_paritydb_enable else 'db' }}"
 
 
@@ -65,22 +90,22 @@ _node_chain_backup_data:
 # Parachain
 #####################################################################################
 
-_node_parachain_data_chain_path: "{{ node_data_root_path }}/chains/{{ _node_parachain_chain_id }}"
-_node_parachain_p2p_key_file: "{{ node_user_home_path }}/keys/{{ node_app_name }}_parachain_p2p_key"
-_node_parachain_chainspec_file: "{{ node_user_home_path }}/chainspecs/{{ node_app_name }}_parachain_chainspec.json"
+_node_parachain_data_chain_path: "{{ _node_data_root_path }}/chains/{{ _node_parachain_chain_id }}"
+_node_parachain_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_parachain_p2p_key"
+_node_parachain_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_parachain_chainspec.json"
 
-_node_parachain_chain_folders:
-  statemine: "statemine"
-  statemint: "statemint"
-  westmint: "westmint"
-
-# The GCP bucket locations
-
-# EXCEPTION: if the folder name in the bucket contains a different name than `node_parachain_chain`, you can add it here
+_node_restore_parachain: "{{ node_parachain_role != '' and
+                            ((node_parachain_chain_backup_restoring_type == 'gcp' and (node_parachain_chain_backup_gcp_bucket != '' or node_parachain_chain_backup_gcp_path != '' )) or
+                            (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != ''))
+                            }}"
 _node_parachain_chain_backup_data:
   part: parachain
   restoring_type: "{{ node_parachain_chain_backup_restoring_type }}"
   force_restoring: "{{ node_parachain_chain_backup_force_restoring }}"
   chain_path: "{{ _node_parachain_data_chain_path }}"
   tar_url: "{{ node_parachain_chain_backup_url }}"
+  gcp_path: "{{ node_parachain_chain_backup_gcp_bucket +
+  node_parachain_chain +
+  ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
+  custom_gcp_path: "{{ node_parachain_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_parachain_paritydb_enable else 'db' }}"

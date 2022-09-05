@@ -2,11 +2,14 @@
 ansible_user: root
 
 # Common
-node_binary: https://github.com/paritytech/cumulus/releases/download/polkadot-v0.9.18/polkadot-collator
+node_binary_version: "v0.9.270"
+node_binary: "https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain"
 node_app_name: "shell"
+node_prometheus_file_exporter_path: "/tmp/substrate.prom"
 #node_binary_deployment: false
 
 # Relaychain
+node_chain: "rococo"
 node_chainspec: "https://paritytech.github.io/chainspecs/rococo/relaychain/chainspec.json"
 node_chain_backup_restoring_type: "none"
 

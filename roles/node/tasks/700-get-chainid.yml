@@ -1,0 +1,47 @@
+---
+
+# Relay chain
+- name: Get chain id | Slurp chainspec_file
+  ansible.builtin.slurp:
+    src: "{{ _node_chainspec_file }}"
+  register: _node_current_chainspec
+  when: node_chainspec != ''
+  check_mode: false
+  changed_when: false
+
+- name: Get chain id | Set chain id
+  ansible.builtin.set_fact:
+    _node_chain_id: "{{ (_node_current_chainspec['content'] | b64decode |from_json).id
+                        if node_chainspec != '' else
+                        node_chain_backup_chain_path
+                    }}"
+
+- name: Get chain id | print _node_chain_id
+  ansible.builtin.debug:
+    var: _node_chain_id
+
+# Parachain
+- name: Get chain id | Slurp parachain_chainspec_file
+  ansible.builtin.slurp:
+    src: "{{ _node_parachain_chainspec_file }}"
+  register: _node_current_parachain_chainspec
+  when:
+   - node_parachain_role != ''
+   - node_parachain_chainspec != ''
+  check_mode: false
+  changed_when: false
+
+- name: Get chain id | Set parachain chain id
+  ansible.builtin.set_fact:
+      _node_parachain_chain_id: "
+        {%- if node_parachain_role != '' and node_parachain_chainspec != '' -%}
+        {{ (_node_current_parachain_chainspec['content'] | b64decode |from_json).id }}
+        {%- elif node_parachain_role != '' and node_parachain_chainspec == '' -%}
+        {{ node_parachain_chain_backup_chain_path }}
+        {%- else -%}
+        {%- endif %}"
+
+- name: Get chain id | print _node_parachain_chain_id
+  ansible.builtin.debug:
+    var: _node_parachain_chain_id
+  when: node_parachain_role != ''

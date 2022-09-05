@@ -1,0 +1,110 @@
+---
+
+- name: Binary | Create bin directory
+  ansible.builtin.file:
+    path: "{{ _node_binary_file | dirname }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ node_user }}"
+    group: "{{ node_user }}"
+
+- name: Binary | Create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: polkadot_temp_binary
+  register: _node_temp_dir
+  check_mode: false
+  changed_when: false
+
+- name: Binary | Setup _node_temp_binary variable
+  ansible.builtin.set_fact:
+    _node_temp_binary_file: "{{ _node_temp_dir.path }}/{{ node_app_name }}"
+
+- name: Binary | Download binary
+  ansible.builtin.get_url:
+    url: "{{ node_binary }}"
+    dest: "{{ _node_temp_binary_file }}"
+    mode: 0755
+    owner: "root"
+    group: "root"
+    headers:
+      PRIVATE-TOKEN: "{{ node_binary_download_private_token }}"
+  check_mode: false
+  changed_when: false
+
+- name: Binary | Check new version
+  ansible.builtin.command: "{{ _node_temp_binary_file }} --version"
+  register: _node_new_version
+  check_mode: false
+  changed_when: false
+
+- name: Binary | Check current binary file exists
+  ansible.builtin.stat:
+    path: "{{ _node_binary_file }}"
+  register: _node_binary_file_stat
+
+- name: Binary | Check current version
+  ansible.builtin.command: "{{ _node_binary_file }} --version"
+  register: _node_current_version
+  when: _node_binary_file_stat.stat.exists
+  check_mode: false
+  changed_when: false
+
+- name: Binary | Setup version variables
+  ansible.builtin.set_fact:
+    _node_version_msg: |
+      Current version: {{ current_version }}
+      New version:     {{ new_version }}
+    _node_commit_hash: "{{ new_version.split('-')[1] }}"
+    _node_version_equal: "{{ current_version == new_version }}"
+  vars:
+    current_version: "{% if _node_current_version.stdout is defined -%}
+      {{ _node_current_version.stdout.split(' ')[1] }}{%- else -%}absent{%- endif %}"
+    new_version: "{{ _node_new_version.stdout.split(' ')[1] }}"
+
+- name: Binary | Print versions according to the '--version' flag
+  ansible.builtin.debug:
+    msg: "{% if _node_version_equal -%}Versions are equal!
+    {%- else -%}{{ _node_version_msg }}{%- endif %}"
+
+- name: Binary | Check current binary path exists
+  ansible.builtin.stat:
+    path: "{{ _node_binary_file | dirname }}"
+  register: _node_binary_path_stat
+
+# We don't need checking of hashes. The copy module does it itself.
+# If you have the same binary file you will see a green check in the check mode.
+- name: Binary | Copy new binary
+  ansible.builtin.copy:
+    src: "{{ _node_temp_binary_file }}"
+    dest: "{{ _node_binary_file }}"
+    remote_src: yes
+    mode: 0755
+    owner: "{{ node_user }}"
+    group: "{{ node_user }}"
+  notify: restart service {{ node_handler_id }}
+  ignore_errors: "{{ not _node_binary_path_stat.stat.exists }}"
+
+- name: Binary | Delete temporary directory
+  ansible.builtin.file:
+    path: "{{ _node_temp_dir.path }}"
+    state: absent
+  check_mode: false
+  changed_when: false
+  when: _node_temp_dir.path is defined
+
+- block:
+
+  - name: Binary | Print _node_binary_version_from_url
+    debug:
+      var: _node_binary_version_from_url
+
+  - name: Binary | Create annotation in Prometheus
+    ansible.builtin.template:
+      src: annotation.j2
+      dest: "{{ node_prometheus_file_exporter_path }}"
+      owner: root
+      group: root
+      mode: '0644'
+
+  when: node_prometheus_file_exporter_path != ''
