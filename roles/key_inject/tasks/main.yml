@@ -1,0 +1,65 @@
+- block:
+
+  - name: Download latest subkey binary
+    ansible.builtin.get_url:
+      url: "{{ subkey_path }}"
+      dest: "/usr/local/bin/subkey"
+      force: true
+      mode: 0755
+    when: key_inject_validator_seed is defined
+
+  - name: Inject validator keys
+    ansible.builtin.shell: |
+      KEY_SEED="{{ key_inject_validator_seed }}"
+      ED_PUB_KEY=$(subkey inspect --scheme ed25519 "$KEY_SEED" | grep Public | awk {'print $4'})
+      SR_PUB_KEY=$(subkey inspect --scheme sr25519 "$KEY_SEED" | grep Public | awk {'print $4'})
+      SESSION_KEYS=""
+      RPC_ENDPOINT=localhost:{{ key_inject_relay_chain_rpc_port }}
+
+      # Inject ED keys
+      for KEY_TYPE in $(echo gran) ; do
+      curl -s -H "Content-Type: application/json" \
+      --data '{ "jsonrpc":"2.0", "method":"author_insertKey", "params":["'"${KEY_TYPE}"'", "'"${KEY_SEED}"'", "'"${ED_PUB_KEY}"'"],"id":1 }' \
+      "${RPC_ENDPOINT}"
+      PUB_KEY=$(subkey inspect --scheme ed25519 "$KEY_SEED" | grep Public | awk {'print $4'})
+      SESSION_KEYS=$(echo -n $SESSION_KEYS$PUB_KEY | sed 's/0x//')
+      done
+
+      # Inject SR keys
+      for KEY_TYPE in $(echo imon babe para audi asgn beef) ; do
+      curl -s -H "Content-Type: application/json" \
+      --data '{ "jsonrpc":"2.0", "method":"author_insertKey", "params":["'"${KEY_TYPE}"'", "'"${KEY_SEED}"'", "'"${SR_PUB_KEY}"'"],"id":1 }' \
+      "${RPC_ENDPOINT}"
+      PUB_KEY=$(subkey inspect --scheme sr25519 "$MOD_SEED" | grep Public | awk {'print $4'})
+      SESSION_KEYS=$(echo -n $SESSION_KEYS$PUB_KEY | sed 's/0x//')
+      done
+
+      echo "0x$SESSION_KEYS"
+    register: session_keys
+    notify: Restart service
+    when: key_inject_validator_seed is defined
+
+  - name: Show session keys output
+    ansible.builtin.debug:
+      var: session_keys
+    when: key_inject_validator_seed is defined
+
+  - name: Parachain keys
+    ansible.builtin.include_tasks: inject.yml
+    loop:
+      - rpc_port: "{{ key_inject_parachain_rpc_port }}"
+        scheme: "{{ key_inject_parachain_scheme }}"
+        type: "aura"
+        priv_key: "{{ key_inject_parachain_aura_private_key }}"
+    loop_control:
+      label: "Parachain {{ item.type }} key"
+    when: key_inject_parachain_aura_private_key is defined
+
+  - name: Relaychain keys
+    ansible.builtin.include_tasks: inject.yml
+    loop: "{{ key_inject_relay_chain_key_list }}"
+    loop_control:
+      label: "Relaychain {{ item.type }} key"
+    when: key_inject_relay_chain_key_list is defined
+
+  tags: ['key-inject', 'key_inject']

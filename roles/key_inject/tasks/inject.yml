@@ -1,0 +1,55 @@
+- name: Inject keys
+  block:
+    - name: Inject | Setting {{ item.type }} pub keys
+      ansible.builtin.set_fact:
+        key_inject_pub_key: "{{ (item.priv_key |
+            infrastructure.chain_operations.subkey_inspect(scheme=(item.scheme | default('sr25519')) )).publicKey }}"
+
+    - name: Inject | Check {{ item.type }} key
+      ansible.builtin.uri:
+        url: "http://localhost:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        method: POST
+        body:
+          jsonrpc: "2.0"
+          method: "author_hasKey"
+          params: ["{{ key_inject_pub_key }}", "{{ item.type }}"]
+          id: 1
+        body_format: json
+        headers:
+          Content-Type: 'application/json'
+      changed_when: false
+      check_mode: false
+      # retries 10 times, because this role can run after node role without pause, and the node is not up yet
+      until: key_inject_uri.status is defined and key_inject_uri.status == 200
+      retries: 12
+      delay: 10
+      register: key_inject_uri
+
+    - name: Inject | Check {{ item.type }} key results
+      ansible.builtin.debug:
+        msg: "Key {{ key_inject_pub_key }} is {{ 'NOT ' if not key_inject_uri.json.result else '' }}present in keystore"
+      changed_when: not key_inject_uri.json.result
+
+    - name: Inject | Inject {{ item.type }} keys
+      ansible.builtin.uri:
+        url: "http://localhost:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        method: POST
+        body:
+          jsonrpc: "2.0"
+          method: "author_insertKey"
+          params: ["{{ item.type }}", "{{ item.priv_key }}", "{{ key_inject_pub_key }}"]
+          id: 1
+        body_format: json
+        headers:
+          Content-Type: 'application/json'
+      changed_when: true
+      notify: Restart service
+      register: key_inject_uri
+      when: not key_inject_uri.json.result
+
+    - name: Inject | Inject {{ item.type }} keys results
+      ansible.builtin.debug:
+        var: key_inject_uri
+      when: not ansible_check_mode
+
+  tags: ['key-inject', 'key_inject']

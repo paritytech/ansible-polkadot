@@ -1,0 +1,14 @@
+subkey_path: 'https://s3.eu-central-1.amazonaws.com/releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey'
+
+# Parachain key injection variables
+key_inject_parachain_rpc_port: 9943
+key_inject_parachain_scheme: "sr25519"
+# key_inject_parachain_aura_private_key=
+
+# Relay chain key injection variables
+key_inject_relay_chain_rpc_port: 9933
+# key_inject_relay_chain_key_list:
+#  - scheme: "sr25519" # Optional default is sr25519
+#    rpc_port: "9933"  # Optional default is {{ key_inject_relay_chain_rpc_port }}
+#    type: "gran"      # Required, key type
+#    priv_key: "0xcc...9123//1//grandpa" # Required, key seed
