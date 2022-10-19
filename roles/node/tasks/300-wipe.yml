@@ -33,3 +33,7 @@
   until: not _node_wipe_results.failed
   delay: "60"
   when: node_parachain_role != '' and (node_parachain_database_wipe | bool)
+
+# we need it to update information about free space after the wipe
+- name: Wipe | Gather facts
+  ansible.builtin.gather_facts:
