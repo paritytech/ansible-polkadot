@@ -1,4 +1,4 @@
-subkey_path: 'https://s3.eu-central-1.amazonaws.com/releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey'
+subkey_path: 'https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey'
 
 # Parachain key injection variables
 key_inject_parachain_rpc_port: 9943
