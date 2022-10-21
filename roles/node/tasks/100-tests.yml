@@ -5,7 +5,7 @@
     msg: "The 'node_binary' variable can't be empty!"
   when: node_binary == ''
 
-# Enable to foce GPG signature verification
+# Enable to force GPG signature verification
 #- name: Test | Check node_binary_signature
 #  ansible.builtin.fail:
 #    msg: "The 'node_binary_signature' variable can't be empty and must be a URL!"
