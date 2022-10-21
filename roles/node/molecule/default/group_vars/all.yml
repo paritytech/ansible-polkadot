@@ -2,8 +2,9 @@
 ansible_user: root
 ## Node
 node_chain: polkadot
-node_binary_version: "v0.9.27"
-node_binary: "https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot"
+node_binary_version: v0.9.30
+node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
+node_binary_signature: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot.asc
 node_chain_backup_restoring_type: "none"
 node_parachain_chain_backup_restoring_type: "none"
 node_p2p_public_key: 12D3KooWRYb7Z2gsZDNCmPN18dBLtM3BD1FEn2RTnauUAe5aPMf8
