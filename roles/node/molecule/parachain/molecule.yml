@@ -2,6 +2,7 @@
 dependency:
   name: galaxy
 driver:
+  #name: podman
   name: ${DRIVER:-docker}
 platforms:
   - name: instance
