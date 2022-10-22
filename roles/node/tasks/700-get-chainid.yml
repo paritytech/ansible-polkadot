@@ -11,7 +11,7 @@
 
 - name: Get chain id | Set chain id
   ansible.builtin.set_fact:
-    _node_chain_id: "{{ (_node_current_chainspec['content'] | b64decode |from_json).id
+    _node_chain_id: "{{ (_node_current_chainspec['content'] | b64decode | from_json).id
                         if node_chainspec != '' else
                         node_chain_backup_chain_path
                     }}"
@@ -35,7 +35,7 @@
   ansible.builtin.set_fact:
       _node_parachain_chain_id: "
         {%- if node_parachain_role != '' and node_parachain_chainspec != '' -%}
-        {{ (_node_current_parachain_chainspec['content'] | b64decode |from_json).id }}
+        {{ (_node_current_parachain_chainspec['content'] | b64decode | from_json).id }}
         {%- elif node_parachain_role != '' and node_parachain_chainspec == '' -%}
         {{ node_parachain_chain_backup_chain_path }}
         {%- else -%}
