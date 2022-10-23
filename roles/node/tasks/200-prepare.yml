@@ -22,13 +22,13 @@
   ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
 
 - name: Prepare | Print _node_user_home_path
-  debug:
+  ansible.builtin.debug:
     var: _node_user_home_path
 
 - name: Prepare | Print _node_data_root_path
-  debug:
+  ansible.builtin.debug:
     var: _node_data_root_path
 
 - name: Prepare | Print _node_memory_profiler_log_path
-  debug:
+  ansible.builtin.debug:
     var: _node_memory_profiler_log_path

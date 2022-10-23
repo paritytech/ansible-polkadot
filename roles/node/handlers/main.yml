@@ -1,6 +1,6 @@
 ---
 - name: restart service {{ node_handler_id }}
-  include_tasks: tasks/002-restart.yml
+  ansible.builtin.include_tasks: tasks/002-restart.yml
 
 - name: health check {{ node_handler_id }}
-  include_tasks: tasks/001-health-check.yml
+  ansible.builtin.include_tasks: tasks/001-health-check.yml
