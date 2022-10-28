@@ -81,3 +81,7 @@ statemine: "statemine"
 statemint: "statemint"
 westmint: "westmint"
 ```
+
+## Example basic inventory
+
+A basic example of an inventory file call be found [here](https://github.com/paritytech/ansible-galaxy/blob/main/roles/node/files/inventory-sample.yml).
