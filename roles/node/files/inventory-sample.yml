@@ -4,10 +4,10 @@ all:
     node_binary_version: v0.9.29
     node_chain: rococo-local
     node_user: polkadot
+    node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
   children:
     validators:
       vars:
-        node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
       hosts:
         validator1:
           node_custom_options: ["--alice"]
@@ -17,6 +17,7 @@ all:
           node_custom_options: ["--bob"]
           ansible_host: validator2.company.com
           node_role: validator
+    rpcs:
         rpc1:
           ansible_host: validator2.company.com
           node_role: rpc
