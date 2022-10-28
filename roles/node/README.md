@@ -84,4 +84,36 @@ westmint: "westmint"
 
 ## Example basic inventory
 
-A basic example of an inventory file call be found [here](https://github.com/paritytech/ansible-galaxy/blob/main/roles/node/files/inventory-sample.yml).
+```
+all:
+  vars:
+    node_app_name: company-chain
+    node_binary_version: v0.9.29
+    node_chain: rococo-local
+    node_user: polkadot
+    node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
+  children:
+    validators:
+      vars:
+      hosts:
+        validator1:
+          node_custom_options: ["--alice"]
+          ansible_host: validator1.company.com
+          node_role: validator
+        validator2:
+          node_custom_options: ["--bob"]
+          ansible_host: validator2.company.com
+          node_role: validator
+    rpcs:
+        rpc1:
+          ansible_host: rpc1.company.com
+          node_role: rpc
+    collators:
+      vars:
+        node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}0/polkadot-parachain
+        node_parachain_chain: shell
+      hosts:
+        collator1:
+          ansible_host: collator1.company.com
+          node_parachain_role: collator
+```
