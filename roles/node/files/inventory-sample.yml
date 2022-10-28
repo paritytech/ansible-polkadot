@@ -1,6 +1,6 @@
 all:
   vars:
-    node_app_name: mychain-collator
+    node_app_name: company-chain
     node_binary_version: v0.9.29
     node_chain: rococo-local
     node_user: polkadot
