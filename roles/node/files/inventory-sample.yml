@@ -19,7 +19,7 @@ all:
           node_role: validator
     rpcs:
         rpc1:
-          ansible_host: validator2.company.com
+          ansible_host: rpc1.company.com
           node_role: rpc
     collators:
       vars:
