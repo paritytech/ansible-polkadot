@@ -66,7 +66,7 @@ scrape_configs:
     static_configs:
       - targets:
 {% for host, var in hostvars.items() %}
-         - {{ hostvars[host].int_ip | default(host + '.' + internal_domain) }}:9100
+         - {{ host }}:9100
 {% endfor %}
 {% if domain is defined %}
     relabel_configs:
@@ -80,10 +80,10 @@ scrape_configs:
     static_configs:
       - targets:
 {% for host in groups['collators'] + groups['rpcs'] + groups['full'] + groups['validators'] + groups['boot'] %}
-         - {{ hostvars[host].int_ip | default(host + '.' + internal_domain) }}:9615
+         - {{ host }}:9615
 {% endfor %}
 {% for host in groups['collators'] %}
-         - {{ hostvars[host].int_ip | default(host + '.' + internal_domain) }}:9625
+         - {{ host }}:9625
 {% endfor %}
 {% if domain is defined %}
     relabel_configs:
@@ -95,7 +95,7 @@ scrape_configs:
     static_configs:
       - targets:
 {% for host, var in hostvars.items() %}
-         - {{ hostvars[host].int_ip | default(host + '.' + internal_domain) }}:9080
+         - {{ host }}:9080
 {% endfor %}
 {% if domain is defined %}
     relabel_configs:
