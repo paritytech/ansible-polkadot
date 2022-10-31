@@ -1,0 +1,388 @@
+#jinja2:variable_start_string:'{{{', variable_end_string:'}}}'
+groups:
+- name: system
+  rules:
+    - alert: node exporter collector errors
+      expr: node_scrape_collector_success != 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] node exporter scrape errors on {{ $labels.instance }}"
+    - alert: filesystem shortage
+      expr: >
+        instance:node_filesystem_avail:ratio < 0.1 and node_filesystem_avail_bytes < 12884901888
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: "[{{ $labels.domain }}] disk space below 10% and 12GiB on {{ $labels.instance }}"
+    - alert: filesystem shortage
+      expr: >
+        instance:node_filesystem_avail:ratio < 0.15 and node_filesystem_avail_bytes < 16106127360
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] disk space below 15% and 15GiB on {{ $labels.instance }}"
+    - alert: cpu utilization
+      expr: >
+        instance:node_cpu_seconds_not_idle:rate5m > instance:node_cpus:count * 0.95
+      for: 60m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] cpu usage is above 95% for more than 60m on instance {{ $labels.instance }}"
+    - alert: memory utilization
+      expr: instance:node_memory_avail:ratio < 0.15
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] memory usage is above 85% on instance {{ $labels.instance }}"
+    - alert: time drift
+      # scrape interval is per default 1m
+      expr: abs(node_time_seconds - scalar(node_time_seconds{instance="wfp-staging-monitoring-01:9100"})) > 70
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] instance {{ $labels.instance }} clock is out of sync"
+    - alert: node exporter down
+      expr: up{job=~".*node.*"} != 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] node exporter down on instance {{ $labels.instance }}"
+    - alert: node exporter ntp collector down
+      expr: node_scrape_collector_success{collector="ntp"} != 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] node exporter ntp collector on instance {{ $labels.instance }} is down"
+    - alert: ntp offset
+      expr: node_ntp_offset_seconds > 0.1
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] ntp offset on instance {{ $labels.instance }} > 100ms"
+    - alert: ntp sanity
+      expr: node_ntp_sanity != 1
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] ntp insanity on instance {{ $labels.instance }}"
+    - alert: access node high disk read IOPS
+      expr: irate(node_disk_reads_completed_total{instance=~".*.access-node.*"}[1m]) > 1500
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: "[{{ $labels.domain }}] high read IOPS usage on instance {{ $labels.instance }}"
+
+groups:
+- name: polkadot.rules
+  rules:
+
+  ##############################################################################
+  # Block production
+  ##############################################################################
+
+  - alert: BlockProductionSlow
+    annotations:
+      message: 'Best block on instance {{ $labels.instance }} increases by
+      less than 1 per minute for more than 3 minutes.'
+    expr: increase(polkadot_block_height{status="best"}[1m]) < 1
+    for: 3m
+    labels:
+      severity: warning
+  - alert: BlockProductionSlow
+    annotations:
+      message: 'Best block on instance {{ $labels.instance }} increases by
+      less than 1 per minute for more than 10 minutes.'
+    expr: increase(polkadot_block_height{status="best"}[1m]) < 1
+    for: 10m
+    labels:
+      severity: critical
+
+  ##############################################################################
+  # Block finalization
+  ##############################################################################
+
+  - alert: BlockFinalizationSlow
+    expr: increase(polkadot_block_height{status="finalized"}[1m]) < 1
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      message: 'Finalized block on instance {{ $labels.instance }} increases by
+      less than 1 per minute for more than 3 minutes.'
+  - alert: BlockFinalizationSlow
+    expr: increase(polkadot_block_height{status="finalized"}[1m]) < 1
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      message: 'Finalized block on instance {{ $labels.instance }} increases by
+      less than 1 per minute for more than 10 minutes.'
+  - alert: BlockFinalizationLaggingBehind
+    # Under the assumption of an average block production of 6 seconds,
+    # "best" and "finalized" being more than 10 blocks apart would imply
+    # more than a 1 minute delay between block production and finalization.
+    expr: '(polkadot_block_height{status="best"} - ignoring(status)
+    polkadot_block_height{status="finalized"}) > 10'
+    for: 8m
+    labels:
+      severity: critical
+    annotations:
+      message: "Block finalization on instance {{ $labels.instance }} is behind
+      block production by {{ $value }} for more than 8 minutes."
+
+  ##############################################################################
+  # Transaction queue
+  ##############################################################################
+
+  - alert: TransactionQueueSizeIncreasing
+    expr: 'increase(polkadot_sub_txpool_validations_scheduled[5m]) -
+    increase(polkadot_sub_txpool_validations_finished[5m]) > 0'
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      message: 'The transaction pool size on node {{ $labels.instance }} has
+      been monotonically increasing for more than 10 minutes.'
+  - alert: TransactionQueueSizeIncreasing
+    expr: 'increase(polkadot_sub_txpool_validations_scheduled[5m]) -
+    increase(polkadot_sub_txpool_validations_finished[5m]) > 0'
+    for: 30m
+    labels:
+      severity: warning
+    annotations:
+      message: 'The transaction pool size on node {{ $labels.instance }} has
+      been monotonically increasing for more than 30 minutes.'
+  - alert: TransactionQueueSizeHigh
+    expr: 'polkadot_sub_txpool_validations_scheduled -
+    polkadot_sub_txpool_validations_finished > 10000'
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      message: 'The transaction pool size on node {{ $labels.instance }} has
+      been above 10_000 for more than 5 minutes.'
+
+  ##############################################################################
+  # Networking
+  ##############################################################################
+
+  - alert: NumberOfPeersLow
+    expr: polkadot_sub_libp2p_peers_count < 3
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      message: 'The node {{ $labels.instance }} has less than 3 peers for more
+      than 3 minutes'
+  - alert: NumberOfPeersLow
+    expr: polkadot_sub_libp2p_peers_count < 3
+    for: 15m
+    labels:
+      severity: critical
+    annotations:
+      message: 'The node {{ $labels.instance }} has less than 3 peers for more
+      than 15 minutes'
+  - alert: NoIncomingConnection
+    expr: increase(polkadot_sub_libp2p_incoming_connections_total[20m]) == 0
+    labels:
+      severity: warning
+    annotations:
+      message: 'The node {{ $labels.instance }} has not received any new incoming
+      TCP connection in the past 20 minutes. Is it connected to the Internet?'
+
+  ##############################################################################
+  # System
+  ##############################################################################
+
+  - alert: NumberOfFileDescriptorsHigh
+    expr: 'node_filefd_allocated{domain=~"kusama|polkadot"} > 10000'
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      message: 'The node {{ $labels.instance }} has more than 10_000 file
+      descriptors allocated for more than 3 minutes'
+
+  ##############################################################################
+  # Others
+  ##############################################################################
+
+  - alert: AuthorityDiscoveryDiscoveryFailureHigh
+    expr: 'polkadot_authority_discovery_handle_value_found_event_failure /
+    ignoring(name)
+    polkadot_authority_discovery_dht_event_received{name="value_found"} > 0.5'
+    for: 2h
+    labels:
+      severity: warning
+    annotations:
+      message: 'Authority discovery on node {{ $labels.instance }} fails to
+      process more than 50 % of the values found on the DHT for more than 2
+      hours.'
+
+  - alert: UnboundedChannelPersistentlyLarge
+    expr: '(
+        (polkadot_unbounded_channel_len{action = "send"} -
+            ignoring(action) polkadot_unbounded_channel_len{action = "received"})
+        or on(instance) polkadot_unbounded_channel_len{action = "send"}
+    ) >= 200'
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      message: 'Channel {{ $labels.entity }} on node {{ $labels.instance }} contains
+      more than 200 items for more than 5 minutes. Node might be frozen.'
+
+  - alert: UnboundedChannelVeryLarge
+    expr: '(
+        (polkadot_unbounded_channel_len{action = "send"} -
+            ignoring(action) polkadot_unbounded_channel_len{action = "received"})
+        or on(instance) polkadot_unbounded_channel_len{action = "send"}
+    ) > 15000'
+    labels:
+      severity: warning
+    annotations:
+      message: 'Channel {{ $labels.entity }} on node {{ $labels.instance }} contains more than
+      15000 items.'
+
+- name: prometheus
+  rules:
+    - alert: PrometheusNotConnectedToAlertmanager
+      expr: prometheus_notifications_alertmanagers_discovered < 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus not connected to alertmanager (instance {{ $labels.instance }})"
+        description: "Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusRuleEvaluationFailures
+      expr: increase(prometheus_rule_evaluation_failures_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus rule evaluation failures (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} rule evaluation failures, leading to potentially ignored alerts.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTemplateTextExpansionFailures
+      expr: increase(prometheus_template_text_expansion_failures_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus template text expansion failures (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} template text expansion failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusRuleEvaluationSlow
+      expr: prometheus_rule_group_last_duration_seconds > prometheus_rule_group_interval_seconds
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus rule evaluation slow (instance {{ $labels.instance }})"
+        description: "Prometheus rule evaluation took more time than the scheduled interval. I indicates a slower storage backend access or too complex query.\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusNotificationsBacklog
+      expr: min_over_time(prometheus_notifications_queue_length[10m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus notifications backlog (instance {{ $labels.instance }})"
+        description: "The Prometheus notification queue has not been empty for 10 minutes\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusAlertmanagerNotificationFailing
+      expr: rate(alertmanager_notifications_failed_total[1m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus AlertManager notification failing (instance {{ $labels.instance }})"
+        description: "Alertmanager is failing sending notifications\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTargetScrapingSlow
+      expr: prometheus_target_interval_length_seconds{quantile="0.9"} > 120
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus target scraping slow (instance {{ $labels.instance }})"
+        description: "Prometheus is scraping exporters slowly\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusLargeScrape
+      expr: increase(prometheus_target_scrapes_exceeded_sample_limit_total[10m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus large scrape (instance {{ $labels.instance }})"
+        description: "Prometheus has many scrapes that exceed the sample limit\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTargetScrapeDuplicate
+      expr: increase(prometheus_target_scrapes_sample_duplicate_timestamp_total[5m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus target scrape duplicate (instance {{ $labels.instance }})"
+        description: "Prometheus has many samples rejected due to duplicate timestamps but different values\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbCheckpointCreationFailures
+      expr: increase(prometheus_tsdb_checkpoint_creations_failed_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB checkpoint creation failures (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} checkpoint creation failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbCheckpointDeletionFailures
+      expr: increase(prometheus_tsdb_checkpoint_deletions_failed_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB checkpoint deletion failures (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} checkpoint deletion failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbCompactionsFailed
+      expr: increase(prometheus_tsdb_compactions_failed_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB compactions failed (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} TSDB compactions failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbHeadTruncationsFailed
+      expr: increase(prometheus_tsdb_head_truncations_failed_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB head truncations failed (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} TSDB head truncation failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbReloadFailures
+      expr: increase(prometheus_tsdb_reloads_failures_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB reload failures (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} TSDB reload failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbWalCorruptions
+      expr: increase(prometheus_tsdb_wal_corruptions_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB WAL corruptions (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} TSDB WAL corruptions\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+    - alert: PrometheusTsdbWalTruncationsFailed
+      expr: increase(prometheus_tsdb_wal_truncations_failed_total[3m]) > 0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: "Prometheus TSDB WAL truncations failed (instance {{ $labels.instance }})"
+        description: "Prometheus encountered {{ $value }} TSDB WAL truncation failures\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"

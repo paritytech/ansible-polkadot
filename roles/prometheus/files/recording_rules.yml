@@ -1,0 +1,11 @@
+groups:
+  - name: node-exporter
+    rules:
+      - record: instance:node_filesystem_avail:ratio
+        expr: node_filesystem_avail_bytes / node_filesystem_size_bytes
+      - record: instance:node_cpu_seconds_not_idle:rate5m
+        expr: sum(rate(node_cpu_seconds_total{mode=~"(user|system|softirq|nice|irq|iowait)"}[5m])) WITHOUT (mode, cpu)
+      - record: instance:node_cpus:count
+        expr: count(node_cpu_seconds_total{mode="system"}) WITHOUT (cpu, mode)
+      - record:  instance:node_memory_avail:ratio
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes

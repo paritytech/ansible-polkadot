@@ -1,0 +1,49 @@
+---
+- name: install packages
+  apt:
+    name:
+      - prometheus
+    state: latest
+  register: installed
+
+- name: put prometheus' default config on the host
+  template:
+    src: default.j2
+    dest: /etc/default/prometheus
+  register: defaults
+
+- name: put prometheus' config on the host
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+  register: configuration
+  tags: prometheus-config
+
+- name: put prometheus' alerting rules in place
+  template:
+    src: alerting_rules.yml.j2
+    dest: /etc/prometheus/alerting_rules.yml
+  register: alerting_rules
+  tags: prometheus-config
+
+- name: put prometheus' recording rules in place
+  copy:
+    src: recording_rules.yml
+    dest: /etc/prometheus/recording_rules.yml
+  register: recording_rules
+  tags: prometheus-config
+
+
+- name: restart and enable prometheus server
+  systemd:
+    enabled: true
+    state: restarted
+    name: prometheus
+  when: (installed is defined and installed.changed) or (defaults is defined and defaults.changed)
+
+- name: reload configuration of prometheus server
+  systemd:
+    state: reloaded
+    name: prometheus
+  when: ((installed is undefined or not installed.changed) and (defaults is undefined or not defaults.changed)) and (configuration.changed or alerting_rules.changed or recording_rules.changed)
+  tags: prometheus-config

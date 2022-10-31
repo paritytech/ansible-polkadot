@@ -1,0 +1,2 @@
+runbook: ""
+validator_count: "{{ groups['validators'] | default([]) | length }}"
