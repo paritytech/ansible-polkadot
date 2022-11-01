@@ -1,0 +1,117 @@
+---
+
+- name: check if binary is already present
+  stat:
+    path: "{{ loki_binary_path }}"
+  register: loki_binary
+
+- name: get loki binary
+  block:
+
+    - name: install unzip
+      apt:
+        name:
+          - unzip
+        state: latest
+
+    - name: make temporary download folder
+      tempfile:
+        state: directory
+        suffix: ".loki"
+      register: download_dir
+
+    - name: download loki binary
+      get_url:
+        url: "{{ loki_download_url }}"
+        dest: "{{ download_dir.path }}/{{ loki_download_url | basename }}"
+        mode: 644
+
+    - name: unarchive loki binary
+      unarchive:
+        src: "{{ download_dir.path }}/{{ loki_download_url | basename }}"
+        dest: "{{ download_dir.path}}"
+        remote_src: yes
+
+    - name: move binary in place
+      copy:
+        remote_src: yes
+        src: "{{ download_dir.path}}/loki-linux-amd64"
+        dest: "{{ loki_binary_path }}"
+        mode: 0755
+        owner: root
+        group: root
+      register: loki_binary_changed
+
+    - name: remove temporary download folder
+      file:
+        path: "{{ download_dir.path}}"
+        state: absent
+  when: not loki_binary.stat.exists or loki_refresh_binary is defined and loki_refresh_binary
+
+
+- name: create loki system user
+  user:
+    name: loki
+    shell: /usr/sbin/nologin
+    home: "{{ loki_data_dir }}"
+    system: yes
+    state: present
+
+- name: ensure data directory exists with the proper permissions
+  file:
+    path: "{{ loki_data_dir }}"
+    state: directory
+    owner: loki
+    group: loki
+    mode: 0750
+
+
+- name: ensure config directory exists
+  file:
+    path: "{{ loki_config_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: render loki configuration
+  template:
+    src: loki.yaml.j2
+    dest: "{{ loki_config_path }}"
+    mode: 0644
+    owner: root
+    group: root
+  register: loki_config
+
+- name: render default environment variables
+  template:
+    src: default.j2
+    dest: /etc/default/loki
+    mode: 0644
+    owner: root
+    group: root
+  register: defaults
+
+- name: render systemd unit file
+  template:
+    src: loki.service.j2
+    dest: /etc/systemd/system/loki.service
+    mode: 0644
+    owner: root
+    group: root
+  register: systemd
+
+
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+  when: systemd.changed
+
+
+- name: enable and start loki
+  systemd:
+    name: loki
+    enabled: true
+    state: restarted
+  when: defaults.changed or systemd.changed or loki_binary_changed is defined or loki_config.changed

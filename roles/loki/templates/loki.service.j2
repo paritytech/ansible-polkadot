@@ -1,0 +1,20 @@
+[Unit]
+Description=Like Prometheus, but for logs.
+Documentation=https://grafana.com/loki
+
+[Service]
+Restart=always
+User=loki
+Group=loki
+EnvironmentFile=/etc/default/loki
+ExecStart={{ loki_binary_path }} -config.file {{ loki_config_path }}
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=yes
+# ProtectDevices=yes
+
+
+[Install]
+WantedBy=multi-user.target
