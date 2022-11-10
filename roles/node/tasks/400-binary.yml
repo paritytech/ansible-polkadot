@@ -117,7 +117,8 @@
   changed_when: false
   when: _node_temp_dir.path is defined
 
-- block:
+- name: Binary | Block
+  block:
 
   - name: Binary | Print _node_binary_version_from_url
     ansible.builtin.debug:

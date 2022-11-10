@@ -5,9 +5,9 @@
 Create `requirements.yml` file in your playbook repository (or add to the existing file):
 ```yaml
 collections:
-  - name: git@github.com:paritytech/ansible-galaxy.git
+  - name: https://github.com/paritytech/ansible-galaxy.git
     type: git
-    version: master
+    version: main
 ```
 
 If you want to install collections in the project space, you have to run:
