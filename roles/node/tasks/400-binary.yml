@@ -41,7 +41,7 @@
   when: node_binary_signature != ''
 
 - name: Binary | Import release GPG public key
-  command: |
+  ansible.builtin.command: |
     {{ _node_binary_gpg_binary }} --keyserver hkps://keyserver.ubuntu.com --receive-keys {{ _node_binary_release_key_id }}
   register: _node_keyout
   changed_when: "'imported' in _node_keyout.stderr"
@@ -49,7 +49,7 @@
   check_mode: false
 
 - name: Binary | Verify GPG signature
-  command: |
+  ansible.builtin.command: |
     {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ node_app_name }}.asc
   register: _node_verifyout
   check_mode: false
@@ -120,7 +120,7 @@
 - block:
 
   - name: Binary | Print _node_binary_version_from_url
-    debug:
+    ansible.builtin.debug:
       var: _node_binary_version_from_url
 
   - name: Binary | Create annotation in Prometheus
