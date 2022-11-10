@@ -42,7 +42,7 @@
 
 - name: Binary | Import release GPG public key
   ansible.builtin.command: |
-    {{ _node_binary_gpg_binary }} --keyserver hkps://keyserver.ubuntu.com --receive-keys {{ _node_binary_release_key_id }}
+    {{ _node_binary_gpg_binary }} --keyserver hkps://keyserver.ubuntu.com --receive-keys {{ node_binary_release_key_id }}
   register: _node_keyout
   changed_when: "'imported' in _node_keyout.stderr"
   failed_when: _node_keyout.rc != 0
