@@ -17,10 +17,8 @@ node_binary: ""
 node_binary_download_private_token: "{{ gitlab_private_token | default(omit) }}"
 # ID of the GPG public key that is used for signing the polkadot binaries
 node_binary_release_key_id: 9D4B2B6EB8F97156D19669A9FF0812D491B96798
-# GPG signature URL
+# GPG signature URL. When left empty, will be ignored
 node_binary_signature: ""
-# Recommended to enable
-node_binary_verification: false
 
 ### Node preferences
 # You can redefine any variables from playbooks directly

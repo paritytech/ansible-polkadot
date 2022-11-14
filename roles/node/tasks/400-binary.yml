@@ -58,7 +58,7 @@
       changed_when: false
       failed_when: _node_verifyout.rc != 0
 
-  when: node_binary_verification
+  when: node_binary_signature != ''
 
 - name: Binary | Check new version
   ansible.builtin.command: "{{ _node_temp_binary_file }} --version"
