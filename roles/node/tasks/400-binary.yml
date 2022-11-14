@@ -32,29 +32,33 @@
   check_mode: false
   changed_when: false
 
-- name: Binary | Download GPG signature
-  ansible.builtin.get_url:
-    url: "{{ node_binary_signature }}"
-    dest: "{{ _node_temp_dir.path }}/{{ node_app_name }}.asc"
-  check_mode: false
-  changed_when: false
-  when: node_binary_signature != ''
+- name: Binary | GPG signature verification
+  block:
 
-- name: Binary | Import release GPG public key
-  ansible.builtin.command: |
-    {{ _node_binary_gpg_binary }} --keyserver hkps://keyserver.ubuntu.com --receive-keys {{ node_binary_release_key_id }}
-  register: _node_keyout
-  changed_when: "'imported' in _node_keyout.stderr"
-  failed_when: _node_keyout.rc != 0
-  check_mode: false
+    - name: Binary | Download GPG signature
+      ansible.builtin.get_url:
+        url: "{{ node_binary_signature }}"
+        dest: "{{ _node_temp_dir.path }}/{{ node_app_name }}.asc"
+      check_mode: false
+      changed_when: false
 
-- name: Binary | Verify GPG signature
-  ansible.builtin.command: |
-    {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ node_app_name }}.asc
-  register: _node_verifyout
-  check_mode: false
-  changed_when: false
-  failed_when: _node_verifyout.rc != 0
+    - name: Binary | Import release GPG public key
+      ansible.builtin.command: |
+        {{ _node_binary_gpg_binary }} --keyserver hkps://keyserver.ubuntu.com --receive-keys {{ node_binary_release_key_id }}
+      register: _node_keyout
+      changed_when: "'imported' in _node_keyout.stderr"
+      failed_when: _node_keyout.rc != 0
+      check_mode: false
+
+    - name: Binary | Verify GPG signature
+      ansible.builtin.command: |
+        {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ node_app_name }}.asc
+      register: _node_verifyout
+      check_mode: false
+      changed_when: false
+      failed_when: _node_verifyout.rc != 0
+
+  when: node_binary_verification
 
 - name: Binary | Check new version
   ansible.builtin.command: "{{ _node_temp_binary_file }} --version"
