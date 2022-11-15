@@ -2,6 +2,10 @@
   hosts: all
   gather_facts: false
   pre_tasks:
-    - name: Install Python3
-      ansible.builtin.raw: apt -y update && apt install -y python3
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - python3
+          - gpg
+        update_cache: yes
       changed_when: false

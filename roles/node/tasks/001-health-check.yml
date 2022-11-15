@@ -12,7 +12,7 @@
     - ansible_facts.services[node_app_name+'.service'].state != 'running'
     - not (_node_pre_check | default(false))
 
-- name: Print service state
+- name: Health check | Show service state
   ansible.builtin.debug:
     var: ansible_facts.services[node_app_name+'.service'].state
 
