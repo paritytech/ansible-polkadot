@@ -92,6 +92,7 @@ all:
     node_chain: rococo-local
     node_user: polkadot
     node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
+    node_binary_signature: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot.asc
   children:
     validators:
       vars:
@@ -111,6 +112,7 @@ all:
     collators:
       vars:
         node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}0/polkadot-parachain
+        node_binary_signature: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}0/polkadot-parachain.asc
         node_parachain_chain: shell
       hosts:
         collator1:
