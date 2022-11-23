@@ -226,7 +226,7 @@ node_parachain_database_wipe: false
 #####################################################################################
 
 node_memory_profiler_enable: false
-node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.9.0/bytehound-x86_64-unknown-linux-gnu.tgz"
+node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.11.0/bytehound-x86_64-unknown-linux-gnu.tgz"
 # if it's empty, the '(home directory of node_user)/logs' directory will be used
 node_memory_profiler_log_path: ""
 node_memory_profiler_log_level: "info"
