@@ -37,7 +37,7 @@ Small wrapper around subkey inspect command.
 Subkey binary should be installed on host machine. 
 
 ```bash
-curl -fSL -o subkey 'https://s3.eu-central-1.amazonaws.com/releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey'
+curl -fSL -o subkey 'https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey'
 chmod +x subkey
 sudo mv subkey /usr/local/bin/subkey
 subkey -V
