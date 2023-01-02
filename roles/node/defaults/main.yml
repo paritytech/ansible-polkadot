@@ -65,7 +65,6 @@ node_wasm_runtime: ""
 ## p2p key
 # If it's empty, the node will generate default key file
 node_p2p_private_key: ""
-node_p2p_public_key: ""
 
 ### Ports and addresses
 ## p2p

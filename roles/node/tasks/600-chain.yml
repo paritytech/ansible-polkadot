@@ -111,29 +111,6 @@
   ignore_errors: "{{ _node_create_directories_register.changed }}"
   when: node_p2p_private_key != ''
 
-- name: Chain | Install subkey for libp2p (node key) test
-  ansible.builtin.get_url:
-    url: "{{ _node_subkey_url }}"
-    dest: "{{ _node_subkey_local_path }}"
-    mode: 0775
-  check_mode: false
-  when: node_p2p_public_key != '' and node_p2p_private_key != ''
-
-- name: Chain | Generate libp2p public key
-  ansible.builtin.command: "{{ _node_subkey_local_path }} inspect-node-key --file {{ _node_p2p_key_file }}"
-  changed_when: false
-  check_mode: false
-  register: _node_pubkey_result
-  when:  node_p2p_public_key != '' and node_p2p_private_key != ''
-
-- name: Chain | Fail if libp2p keypair doesn't match
-  ansible.builtin.fail:
-    msg: The libp2p private key doesn't match the public key. Please verify and correct
-  when:
-    - node_p2p_public_key != ''
-    - node_p2p_private_key != ''
-    - _node_pubkey_result.stdout != node_p2p_public_key
-
 - name: Chain | Copy {{ node_app_name }} parachain p2p key file
   ansible.builtin.copy:
     content: "{{ node_parachain_p2p_private_key }}"
