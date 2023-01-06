@@ -8,7 +8,6 @@ node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_bi
 node_binary_signature: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot.asc
 node_chain_backup_restoring_type: "none"
 node_parachain_chain_backup_restoring_type: "none"
-node_p2p_public_key: 12D3KooWRYb7Z2gsZDNCmPN18dBLtM3BD1FEn2RTnauUAe5aPMf8
 # This private key is only for modulecule tests
 # Note: don't modify this key either, because the last character (which is invisible here) is special
 # and without it, subkey won't be able to work with it
