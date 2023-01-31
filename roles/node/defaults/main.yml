@@ -83,7 +83,7 @@ node_ws_max_connections: "100"
 
 ### Node preferences
 node_paritydb_enable: false
-node_db_cache: 512
+node_db_cache: ""
 # Set amount of blocks to save in the pruning mode, 0 - pruning mode is disabled
 node_pruning: 0
 # You can specify any custom options as a list
