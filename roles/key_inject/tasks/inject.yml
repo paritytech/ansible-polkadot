@@ -7,7 +7,7 @@
 
     - name: Inject | Check {{ item.type }} key
       ansible.builtin.uri:
-        url: "http://localhost:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        url: "http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
         method: POST
         body:
           jsonrpc: "2.0"
@@ -33,7 +33,7 @@
 
     - name: Inject | Inject {{ item.type }} keys
       ansible.builtin.uri:
-        url: "http://localhost:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        url: "http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
         method: POST
         body:
           jsonrpc: "2.0"
