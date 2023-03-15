@@ -30,6 +30,7 @@
       body_format: json
       headers:
         Content-Type: 'application/json'
+      use_proxy: false
     loop:
       - 9933
       - 9943
@@ -57,6 +58,7 @@
       body_format: json
       headers:
         Content-Type: 'application/json'
+      use_proxy: false
     loop:
       - 9933
       - 9943

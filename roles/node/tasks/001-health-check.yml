@@ -30,6 +30,7 @@
         method: "system_health"
         params: []
       return_content: yes
+      use_proxy: false
     register: _node_health_check_register
     until: _node_health_check_register.status is defined and _node_health_check_register.status == 200
     retries: 12
@@ -54,6 +55,7 @@
         method: "system_version"
         params: [ ]
       return_content: yes
+      use_proxy: false
     register: _node_version_check_register
     until: _node_version_check_register.status is defined and _node_version_check_register.status == 200
     retries: 2
