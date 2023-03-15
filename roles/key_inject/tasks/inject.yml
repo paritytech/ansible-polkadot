@@ -17,6 +17,7 @@
         body_format: json
         headers:
           Content-Type: 'application/json'
+        use_proxy: false
       changed_when: false
       check_mode: false
       # retries 10 times, because this role can run after node role without pause, and the node is not up yet
@@ -42,6 +43,7 @@
         body_format: json
         headers:
           Content-Type: 'application/json'
+        use_proxy: false
       changed_when: true
       notify: Restart service
       register: key_inject_uri
