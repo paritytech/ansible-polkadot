@@ -1,24 +1,28 @@
 ---
 
-- name: Restore {{ item.part }} | GCP restoring | Install packages
-  ansible.builtin.package:
-    name: gpg
-    update_cache: yes
+- block:
 
-- name: Restore {{ item.part }} | GCP restoring | Add Google cloud apt GPG key
-  ansible.builtin.apt_key:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  - name: Restore {{ item.part }} | GCP restoring | Install packages
+    ansible.builtin.package:
+      name: gpg
+      update_cache: yes
 
-- name: Restore {{ item.part }} | GCP restoring | Add gce-sdk repository
-  ansible.builtin.apt_repository:
-    repo: deb http://packages.cloud.google.com/apt cloud-sdk-{{ ansible_distribution_release }} main
-    filename: /etc/apt/sources.list.d/gce_sdk.list
-    update_cache: yes
+  - name: Restore {{ item.part }} | GCP restoring | Add Google cloud apt GPG key
+    ansible.builtin.apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
 
-- name: Restore {{ item.part }} | GCP restoring | Install packages
-  ansible.builtin.package:
-    name: google-cloud-sdk
-    update_cache: no
+  - name: Restore {{ item.part }} | GCP restoring | Add gce-sdk repository
+    ansible.builtin.apt_repository:
+      repo: deb http://packages.cloud.google.com/apt cloud-sdk-{{ ansible_distribution_release }} main
+      filename: /etc/apt/sources.list.d/gce_sdk.list
+      update_cache: yes
+
+  - name: Restore {{ item.part }} | GCP restoring | Install packages
+    ansible.builtin.package:
+      name: google-cloud-sdk
+      update_cache: no
+
+  when: node_chain_backup_gcp_install_sdk | bool
 
 - name: Restore {{ item.part }} | GCP restoring | Check last version
   ansible.builtin.command: gsutil cat {{ item.gcp_path }}/latest_version.meta.txt
