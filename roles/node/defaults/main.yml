@@ -109,6 +109,8 @@ node_chain_backup_url: ""
 node_chain_backup_gcp_bucket: ""
 # Link to a gcp backup, you have to specify a full path including a bucket name.
 node_chain_backup_gcp_path: ""
+# If you don't have pre-installed google SDK the role can install it
+node_chain_backup_gcp_install_sdk: false
 # If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
 # It works only for diff sync restoring types, there is only one now - gcp.
 # It can be useful if you want to restore a broken db very quickly.
