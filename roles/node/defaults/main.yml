@@ -179,7 +179,7 @@ node_parachain_ws_max_connections: "100"
 
 ### Node preferences
 node_parachain_paritydb_enable: false
-node_parachain_db_cache: 512
+node_parachain_db_cache: ""
 # You can redefine any variables from playbooks directly
 # Values from the "_node_profiles" are used by default
 node_parachain_in_peers: "25"

@@ -27,6 +27,7 @@
     mode: 0755
     owner: "root"
     group: "root"
+    timeout: 30
     headers:
       PRIVATE-TOKEN: "{{ node_binary_download_private_token }}"
   check_mode: false

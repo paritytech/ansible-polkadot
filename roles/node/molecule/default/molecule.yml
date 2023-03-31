@@ -24,6 +24,8 @@ provisioner:
     D: True
 verifier:
   name: ansible
+  options:
+    D: True
 lint: |
   set -e
   yamllint .

@@ -2,6 +2,7 @@
 
 - name: Systemd | Get public IP
   community.general.ipify_facts:
+    timeout: 30
   register: _node_ipify_result
   until: _node_ipify_result.failed is defined and not _node_ipify_result.failed
   retries: 3

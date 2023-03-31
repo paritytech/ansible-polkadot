@@ -4,7 +4,7 @@ dependency:
 driver:
   name: ${DRIVER:-docker}
 platforms:
-  - name: instance
+  - name: instance-parachain
     # LXD
     source:
       alias: debian/bullseye/amd64
@@ -18,6 +18,10 @@ platforms:
     # to pull image  from docker hub uncomment this
     pre_build_image: true
 
+provisioner:
+  name: ansible
+  options:
+    D: True
 verifier:
   name: ansible
   options:
