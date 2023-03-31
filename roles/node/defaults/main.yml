@@ -84,7 +84,9 @@ node_ws_max_connections: "100"
 ### Node preferences
 node_paritydb_enable: false
 node_db_cache: ""
-# Set amount of blocks to save in the pruning mode, 0 - pruning mode is disabled
+# amount of blocks to save state in the pruning mode
+# if you need the state pruning mode the recommended (default) value is 256
+# 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
 node_pruning: 0
 # You can specify any custom options as a list
 node_custom_options: []
@@ -177,12 +179,14 @@ node_parachain_ws_max_connections: "100"
 
 ### Node preferences
 node_parachain_paritydb_enable: false
-node_parachain_db_cache: 512
+node_parachain_db_cache: ""
 # You can redefine any variables from playbooks directly
 # Values from the "_node_profiles" are used by default
 node_parachain_in_peers: "25"
 node_parachain_out_peers: "25"
-# Set amount of blocks to save in the pruning mode, 0 - pruning mode is disabled
+# amount of blocks to save state in the pruning mode
+# if you need the state pruning mode the recommended (default) value is 256
+# 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
 node_parachain_pruning: 0
 # You can specify any custom options as a list
 node_parachain_custom_options: []

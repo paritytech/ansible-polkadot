@@ -43,6 +43,7 @@ You can deploy role locally in docker container, e.g to check node logs.
 #### Relaychain
 ```bash
 cd roles/node
+molecule lint
 molecule converge
 molecule verify
 molecule login
@@ -53,14 +54,10 @@ molecule destroy # to clean everything
 #### Parachain
 ```bash
 cd roles/node
-molecule test  
-cd roles/node
+molecule lint
 molecule converge --scenario-name parachain
 molecule verify --scenario-name parachain
-molecule login --scenario-name parachain --host instance1 
-> journalctl -f
-> exit
-molecule login -s parachain -h instance2
+molecule login --scenario-name parachain --host instance-parachain 
 > journalctl -f
 > exit
 molecule destroy --scenario-name parachain # to clean everything
