@@ -67,6 +67,10 @@ node_wasm_runtime: ""
 node_p2p_private_key: ""
 
 ### Ports and addresses
+# Substrate changed the default rpc flags: https://github.com/paritytech/substrate/pull/13384
+# Port `9933` was replaced by combined port `9944`
+# If your node is still using the old binary with old RPC flags, please set this to true
+node_legacy_rpc_flags: true
 ## p2p
 node_p2p_bind_addr: "0.0.0.0"
 node_p2p_port: "30333"
@@ -77,7 +81,7 @@ node_p2p_ws_port: "30334"
 node_prometheus_port: "9615"
 node_prometheus_external_enable: true
 ## api
-node_rpc_port: "9933"
+node_rpc_port: "{{ '9933' if node_legacy_rpc_flags else node_rpc_ws_port }}"
 node_rpc_ws_port: "9944"
 node_ws_max_connections: "100"
 
@@ -173,7 +177,7 @@ node_parachain_p2p_ws_port: "30344"
 node_parachain_prometheus_port: "9625"
 node_parachain_prometheus_external_enable: true
 ## api
-node_parachain_rpc_port: "9943"
+node_parachain_rpc_port: "{{ '9943' if node_legacy_rpc_flags else node_parachain_rpc_ws_port }}"
 node_parachain_rpc_ws_port: "9954"
 node_parachain_ws_max_connections: "100"
 
