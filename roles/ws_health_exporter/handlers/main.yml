@@ -1,0 +1,8 @@
+---
+
+- name: restart ws-health-exporter
+  ansible.builtin.systemd:
+    name: "{{ _ws_health_exporter_name }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

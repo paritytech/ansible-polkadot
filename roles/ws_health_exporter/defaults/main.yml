@@ -1,0 +1,19 @@
+---
+
+ws_health_exporter_url: "https://raw.githubusercontent.com/paritytech/scripts/0a2e6e9ba37799de60949acc5d7b4a0e875ae732/dockerfiles/ws-health-exporter/exporter.py"
+ws_health_exporter_base_path: "/opt/{{ _ws_health_exporter_name }}"
+# user has to be created by the role user
+ws_health_exporter_user: "polkadot"
+
+# you can find more details here
+# https://github.com/paritytech/scripts/blob/master/dockerfiles/ws-health-exporter/README.md
+ws_health_exporter_host: "0.0.0.0"
+ws_health_exporter_port: 8001
+ws_health_exporter_log_level: "INFO"
+ws_health_exporter_ws_check_interval: 10
+ws_health_exporter_ws_timeout: 60
+ws_health_exporter_node_max_unsynchronized_block_drift: 0
+ws_health_exporter_node_min_peers: 10
+
+ws_health_exporter_ws_urls:
+  - "ws://127.0.0.1:9944"

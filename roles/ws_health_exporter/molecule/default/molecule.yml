@@ -4,7 +4,7 @@ dependency:
 driver:
   name: ${DRIVER:-docker}
 platforms:
-  - name: molecule-instance-node
+  - name: molecule-instance-ws-health-exporter
     # LXD
     source:
       alias: debian/bullseye/amd64

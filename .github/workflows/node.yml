@@ -1,0 +1,25 @@
+name: node role
+
+on:
+  pull_request:
+    paths:
+      - roles/node/**
+      - .github/**
+  push:
+    branches:
+      - main
+    paths:
+      - roles/node/**
+      - .github/**
+
+jobs:
+  call-workflow-molecule-with-lxd:
+    uses: ./.github/workflows/molecule.yml
+    with:
+      role-path: roles/node
+      molecule-driver: lxd
+  call-workflow-molecule-with-docker:
+    uses: ./.github/workflows/molecule.yml
+    with:
+      role-path: roles/node
+      molecule-driver: docker
