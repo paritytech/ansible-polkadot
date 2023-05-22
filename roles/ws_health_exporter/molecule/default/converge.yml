@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Include ws_health_exporter"
+      ansible.builtin.include_role:
+        name: "ws_health_exporter"

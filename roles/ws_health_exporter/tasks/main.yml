@@ -1,0 +1,73 @@
+---
+
+- block:
+
+  - name: ws_health_exporter | install apt packages
+    ansible.builtin.package:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - "python3-venv"
+        - "python3-setuptools"
+
+  - name: ws_health_exporter | create base directory
+    ansible.builtin.file:
+      path: "{{ ws_health_exporter_base_path }}"
+      state: directory
+      mode: 0755
+      owner: "root"
+      group: "root"
+
+  - name: ws_health_exporter | download exporter file
+    ansible.builtin.get_url:
+      url: "{{ ws_health_exporter_url }}"
+      dest: "{{ _ws_health_exporter_file }}"
+      mode: 0755
+      owner: "root"
+      group: "root"
+      timeout: 30
+    notify: restart ws-health-exporter
+
+  - name: ws_health_exporter | install Python modules
+    ansible.builtin.pip:
+      name:
+        - "prometheus-client==0.16.0"
+        - "websocket-client==1.5.1"
+        - "apscheduler==3.10.1"
+        - "flask==2.2.3"
+        - "environs==9.5.0"
+        - "waitress==2.1.2"
+      virtualenv: "{{ _ws_health_exporter_venv }}"
+      virtualenv_command: "python3 -m venv"
+
+  - name: ws_health_exporter | set root as owner of the venv directory
+    ansible.builtin.file:
+      path: "{{ _ws_health_exporter_venv }}"
+      state: directory
+      recurse: true
+      owner: "root"
+      group: "root"
+
+  - name: ws_health_exporter | copy exporter systemd unit file
+    ansible.builtin.template:
+      src: ".service.j2"
+      dest: "/etc/systemd/system/{{ _ws_health_exporter_name }}.service"
+      owner: "root"
+      group: "root"
+      mode: "0600"
+    notify: restart ws-health-exporter
+
+    # to avoid 2 restarts during the first deploy
+  - name: ws_health_exporter | Flush handlers
+    ansible.builtin.meta: flush_handlers
+
+  - name: ws_health_exporter | start exporter service
+    ansible.builtin.systemd:
+      name: "{{ _ws_health_exporter_name }}"
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+  tags: ['ws_health_exporter', 'ws-health-exporter']

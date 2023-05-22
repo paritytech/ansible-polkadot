@@ -1,0 +1,22 @@
+[Unit]
+Description=ws_health_exporter systemd service
+
+[Service]
+Environment="PYTHONUNBUFFERED=True"
+Environment="WSHE_NODE_RPC_URLS={{ ws_health_exporter_ws_urls | join(',') }}"
+Environment="WSHE_LOG_LEVEL={{ ws_health_exporter_log_level }}"
+Environment="WSHE_HOST={{ ws_health_exporter_host }}"
+Environment="WSHE_PORT={{ ws_health_exporter_port }}"
+Environment="WSHE_WS_CHECK_INTERVAL={{ ws_health_exporter_ws_check_interval }}"
+Environment="WSHE_WS_TIMEOUT={{ ws_health_exporter_ws_timeout }}"
+Environment="WSHE_NODE_MAX_UNSYNCHRONIZED_BLOCK_DRIFT={{ ws_health_exporter_node_max_unsynchronized_block_drift }}"
+Environment="WSHE_NODE_MIN_PEERS={{ ws_health_exporter_node_min_peers }}"
+
+ExecStart={{ _ws_health_exporter_venv }}/bin/python3 {{ _ws_health_exporter_file }}
+
+Restart=always
+User={{ ws_health_exporter_user }}
+Group={{ ws_health_exporter_user }}
+
+[Install]
+WantedBy=multi-user.target
