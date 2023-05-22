@@ -19,4 +19,10 @@
       label: "Relaychain {{ item.type }} key"
     when: key_inject_relay_chain_key_list is defined
 
+  - name: Check session key is present
+    ansible.builtin.include_tasks: check_seesion_key.yml
+    when:
+     - key_inject_relay_chain_key_list is defined
+     - key_inject_check_session_key
+
   tags: ['key-inject', 'key_inject']
