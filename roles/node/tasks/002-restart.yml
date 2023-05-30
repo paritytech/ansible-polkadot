@@ -8,4 +8,3 @@
     daemon_reload: yes
   notify: health check {{ node_handler_id }}
   ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
-  when: node_start_service | bool

@@ -93,5 +93,5 @@
     file: 002-restart.yml
     apply:
       tags: ['node', 'node-restart']
-  when: node_force_restart | bool
+  when: node_start_service | bool and node_force_restart | bool
   tags: ['node', 'node-restart']
