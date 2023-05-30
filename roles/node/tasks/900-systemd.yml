@@ -7,6 +7,7 @@
   until: _node_ipify_result.failed is defined and not _node_ipify_result.failed
   retries: 3
   delay: 10
+  when: node_enable_public_ip_detection | bool
 
 - name: Systemd | Create directories
   ansible.builtin.file:
@@ -44,7 +45,7 @@
 - name: Systemd | Start {{ node_app_name }} service
   ansible.builtin.systemd:
     name: "{{ node_app_name }}"
-    state: started
+    state: "{{ 'started' if (node_start_service | bool) else 'stopped' }}"
     enabled: yes
     daemon_reload: yes
   notify: health check {{ node_handler_id }}

@@ -38,6 +38,8 @@ node_force_restart: false
 # to avoid this set the node_handler_id, it can be set only as play variable not as the host variable.
 # see https://github.com/ansible/ansible/issues/76855
 node_handler_id: ""
+# Start service after playbook execution is completed
+node_start_service: true
 
 ### File used for Ansible annotation
 # File name for prometheus node-exporter textfile collector
@@ -75,6 +77,8 @@ node_legacy_rpc_flags: true
 node_p2p_bind_addr: "0.0.0.0"
 node_p2p_port: "30333"
 node_p2p_public_port: "{{ node_p2p_port }}"
+# Enable discovering public IP of the node (i.e., behind NAT) and set `--public-addr` flag
+node_enable_public_ip_detection: true
 # It works only for the 'boot' mode!
 node_p2p_ws_port: "30334"
 ## prometheus

@@ -1,6 +1,8 @@
 ---
 - name: restart service {{ node_handler_id }}
   ansible.builtin.include_tasks: tasks/002-restart.yml
+  when: node_start_service | bool
 
 - name: health check {{ node_handler_id }}
   ansible.builtin.include_tasks: tasks/001-health-check.yml
+  when: node_start_service | bool

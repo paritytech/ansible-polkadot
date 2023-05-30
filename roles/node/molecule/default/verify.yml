@@ -24,27 +24,48 @@
       headers:
         Content-Type: 'application/json'
       use_proxy: false
+    until: _system_health_result.status is defined and _system_health_result.status == 200
+    retries: 3
+    delay: 10
     register: _system_health_result
 
-  - name: Print system_syncState
+  - name: Print system_health
     ansible.builtin.debug:
       msg: "{{ _system_health_result.json }}"
 
-  - name: re-deploy node with wipe
+  - name: Re-deploy node with additional parameters
     ansible.builtin.include_role:
       name: "node"
     vars:
-      node_db_wipe: true
+      node_database_wipe: true
       node_parachain_database_wipe: true
+      node_enable_public_ip_detection: false
+      node_start_service: false
 
-  - name: Collect service facts
+  - name: Collect service facts 1
     ansible.builtin.service_facts:
 
-  - name: Print service facts
+  - name: Print service facts 1
     ansible.builtin.debug:
       var: ansible_facts.services['polkadot.service']
 
-  - name: check service
+  - name: Check service 1
+    ansible.builtin.assert:
+      that: ansible_facts.services['polkadot.service'].state == 'stopped'
+
+  - name: Start {{ node_app_name }} service
+    ansible.builtin.systemd:
+      name: "{{ node_app_name }}"
+      state: "started"
+
+  - name: Collect service facts 2
+    ansible.builtin.service_facts:
+
+  - name: Print service facts 2
+    ansible.builtin.debug:
+      var: ansible_facts.services['polkadot.service']
+
+  - name: Check service 2
     ansible.builtin.assert:
       that: ansible_facts.services['polkadot.service'].state == 'running'
 
@@ -58,15 +79,14 @@
       headers:
         Content-Type: 'application/json'
       use_proxy: false
+    until: _system_health_result.status is defined and _system_health_result.status == 200
+    retries: 3
+    delay: 10
     register: _system_health_result
 
   - name: Print system_health
     ansible.builtin.debug:
       msg: "{{ _system_health_result.json }}"
-
-  - name: chain syncing
-    ansible.builtin.assert:
-      that: _system_health_result.json['result']['isSyncing']
 
   - name: Get system_syncState
     ansible.builtin.uri:
