@@ -32,8 +32,8 @@
         Content-Type: 'application/json'
       use_proxy: false
     loop:
-      - 9933
-      - 9943
+      - {{ node_rpc_port }}
+      - {{ node_parachain_rpc_port }}
     register: _system_health_result
 
   - name: Print system_health
@@ -60,8 +60,8 @@
         Content-Type: 'application/json'
       use_proxy: false
     loop:
-      - 9933
-      - 9943
+      - {{ node_rpc_port }}
+      - {{ node_parachain_rpc_port }}
     register: _system_syncstate_result
 
   - name: Print system_syncState

@@ -16,7 +16,7 @@
 
   - name: Get system_health
     ansible.builtin.uri:
-      url: 'http://127.0.0.1:9933'
+      url: 'http://127.0.0.1:{{ node_rpc_port }}'
       method: POST
       body:
         {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
@@ -71,7 +71,7 @@
 
   - name: Get system_health
     ansible.builtin.uri:
-      url: 'http://127.0.0.1:9933'
+      url: 'http://127.0.0.1:{{ node_rpc_port }}'
       method: POST
       body:
         {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
@@ -90,7 +90,7 @@
 
   - name: Get system_syncState
     ansible.builtin.uri:
-      url: 'http://127.0.0.1:9933'
+      url: 'http://127.0.0.1:{{ node_rpc_port }}'
       method: POST
       body:
         {"id":1, "jsonrpc":"2.0", "method":"system_syncState", "params":[]}

@@ -6,6 +6,7 @@ node_chain: polkadot
 node_app_name: "{{ node_chain }}"
 node_binary_version: v0.9.43
 node_legacy_rpc_flags: false
+node_rpc_port: 9944
 node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
 node_binary_signature: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot.asc
 node_chain_backup_restoring_type: "none"
