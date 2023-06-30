@@ -21,8 +21,7 @@
 - name: Restore {{ item.part }} | Set custom facts 1
   ansible.builtin.set_fact:
     _node_run_restore: "{{ not _node_data_chain_path_db_stat.stat.exists or
-                           _node_data_chain_path_db_size.stdout == '0' or
-                           item.force_restoring }}"
+                           _node_data_chain_path_db_size.stdout == '0' }}"
     # we only use the tmp_restore_path directory if we really need it (when a service is run)
     _node_use_tmp_restore_path: "{{ ansible_facts.services[node_app_name+'.service'] is defined and
                                     ansible_facts.services[node_app_name+'.service'].state == 'running' and 
@@ -38,8 +37,7 @@
     # We don't need to calculate free space if we sync  a backup to an existing DB
     # Because we can't know the required amount of free space before syncing
     _node_run_check_size: "{{ not (_node_data_chain_path_db_stat.stat.exists and 
-                              _node_data_chain_path_db_size.stdout != '0' and 
-                              item.force_restoring and
+                              _node_data_chain_path_db_size.stdout != '0' and
                               not _node_use_tmp_restore_path) and 
                               _node_run_check_size_mounts | length > 0  }}"
     _node_backup_dl_path: "{{ node_chain_backup_tmp_restore_path if _node_use_tmp_restore_path 
@@ -71,7 +69,7 @@
       _node_restore_free_space: "{{ _node_run_check_size_mounts[-1]['size_available'] }}"
     when: _node_run_check_size
 
-  - name: Restore {{ item.part }} | GCP restoring | Print free space in '_node_data_root_path'
+  - name: Restore {{ item.part }} | Print free space in '_node_data_root_path'
     ansible.builtin.debug:
       msg: Free space at destination = {{ _node_restore_free_space | filesizeformat(true) }}
     when: _node_run_check_size
@@ -81,7 +79,7 @@
       file: 801-restore-chain-tar.yml
       apply:
         tags: [ 'node', 'node-restore-chain' ]
-    when: item.restoring_type == 'tar' and not item.force_restoring
+    when: item.restoring_type == 'tar'
 
   - name: Restore {{ item.part }} | GCP restoring
     ansible.builtin.include_tasks:
@@ -89,6 +87,13 @@
       apply:
         tags: [ 'node', 'node-restore-chain' ]
     when:  item.restoring_type == 'gcp'
+
+  - name: Restore {{ item.part }} | HTTP restoring
+    ansible.builtin.include_tasks:
+      file: 803-restore-chain-http.yml
+      apply:
+        tags: [ 'node', 'node-restore-chain' ]
+    when:  item.restoring_type == 'http'
 
   - name: Restore {{ item.part }} | Check if data_root folder already exists
     ansible.builtin.stat:

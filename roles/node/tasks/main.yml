@@ -11,14 +11,14 @@
   ansible.builtin.stat:
     path: "{{ _node_unit_file }}"
   register: _node_systemd_unit_file_stat
-  tags: ['node', 'node-wipe', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart']
+  tags: ['node', 'node-wipe', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart', 'node-post-tasks']
 
 - name: node | Prepare
   ansible.builtin.include_tasks:
     file: 200-prepare.yml
     apply:
-      tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart']
-  tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart']
+      tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart', 'node-post-tasks']
+  tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart', 'node-post-tasks']
 
 - name: node | Wipe
   ansible.builtin.include_tasks:
@@ -95,3 +95,10 @@
       tags: ['node', 'node-restart']
   when: node_start_service | bool and node_force_restart | bool
   tags: ['node', 'node-restart']
+
+- name: node | Post tasks
+  ansible.builtin.include_tasks:
+    file: 1000-post-tasks.yml
+    apply:
+      tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart', 'node-post-tasks']
+  tags: ['node', 'node-prepare', 'node-health-check', 'node-binary', 'node-memory-profiler', 'node-chain', 'node-restore-chain', 'node-systemd', 'node-restart', 'node-post-tasks']

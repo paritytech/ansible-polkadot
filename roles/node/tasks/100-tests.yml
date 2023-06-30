@@ -50,12 +50,12 @@
 - name: Test | Check node_chain_backup_restoring_type
   ansible.builtin.fail:
     msg: "The 'node_chain_backup_restoring_type' variable can contain only 'gcp', 'tar' or 'none' values!"
-  when: node_chain_backup_restoring_type not in ["gcp", "tar", "none"]
+  when: node_chain_backup_restoring_type not in ["http", "gcp", "tar", "none"]
 
 - name: Test | Check node_parachain_chain_backup_restoring_type
   ansible.builtin.fail:
     msg: "The 'node_parachain_chain_backup_restoring_type' variable can contain only 'gcp', 'tar' or 'none' values!"
-  when: node_parachain_chain_backup_restoring_type not in ["gcp", "tar", "none"]
+  when: node_parachain_chain_backup_restoring_type not in ["http", "gcp", "tar", "none"]
 
 - name: Test | Check gcp backup
   ansible.builtin.fail:
@@ -63,18 +63,6 @@
     pruning state: {{ (node_pruning > 0) }}, 
     you have to set the node_chain_backup_gcp_bucket variable or the node_chain_backup_gcp_path"
   when: node_chain_backup_restoring_type == 'gcp' and node_chain_backup_gcp_bucket == '' and node_chain_backup_gcp_path == ''
-
-  # Should just function as a warning in check mode
-- name: Test | Check if node_chain_backup_force_restoring is enabled without a custom path
-  ansible.builtin.fail:
-    msg: |
-      node_chain_backup_force_restoring is enabled without node_chain_backup_tmp_restore_path being set. 
-      This could cause long downtime if the backup size is huge
-  when:
-    - node_chain_backup_force_restoring
-    - node_chain_backup_tmp_restore_path == ''
-    - ansible_check_mode
-  ignore_errors: true
 
 - name: Test | Check parachain gcp backup
   ansible.builtin.fail:
