@@ -25,17 +25,17 @@
   when: node_chain_backup_gcp_install_sdk | bool
 
 - name: Restore {{ item.part }} | GCP restoring | Check last version
-  ansible.builtin.command: gsutil cat {{ item.gcp_path }}/latest_version.meta.txt
+  ansible.builtin.command: gsutil cat {{ item.gcp_url }}/latest_version.meta.txt
   register: _node_last_backup_version
   check_mode: false
   changed_when: false
-  when: item.custom_gcp_path == ''
+  when: item.custom_gcp_url == ''
 
 - name: Restore {{ item.part }} | GCP restoring | Setup _node_chain_backup_gcp_full_path
   ansible.builtin.set_fact:
-    _node_chain_backup_gcp_full_path: "{% if item.custom_gcp_path == '' %}
-    {{ item.gcp_path }}/{{ _node_last_backup_version.stdout }}
-    {% else %}{{ item.custom_gcp_path }}{% endif %}"
+    _node_chain_backup_gcp_full_path: "{% if item.custom_gcp_url == '' %}
+    {{ item.gcp_url }}/{{ _node_last_backup_version.stdout }}
+    {% else %}{{ item.custom_gcp_url }}{% endif %}"
 
 - name: Restore {{ item.part }} | GCP restoring | Check the size of the backup
   ansible.builtin.shell: gsutil du -s {{ _node_chain_backup_gcp_full_path | trim | quote }} | awk '{print $1}'
@@ -52,9 +52,8 @@
 - name: Restore {{ item.part }} | GCP restoring | Fail if free space <500MB
   ansible.builtin.fail:
     msg: |
-      Not enough free space to perform the restore, you should set the node_chain_restore_custom_path variable
-      to a path on a different drive with enough free space or enable node_chain_backup_force_restoring
-      to overwrite the original db
+      Not enough free space to perform the restore, you should set the node_data_root_path variable
+      to a path on a different drive with enough free space
   when:
     - _node_run_check_size
     - _node_restore_free_space | int - _node_restore_backup_size.stdout | int < 500 * 1024 * 1024

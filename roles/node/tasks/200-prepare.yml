@@ -32,3 +32,11 @@
 - name: Prepare | Print _node_memory_profiler_log_path
   ansible.builtin.debug:
     var: _node_memory_profiler_log_path
+
+- name: Prepare | Create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: polkadot_temp_dir
+  register: _node_temp_dir
+  check_mode: false
+  changed_when: false

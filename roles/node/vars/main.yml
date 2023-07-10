@@ -27,8 +27,7 @@ _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
 _node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
 _node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"
 
-_node_subkey_url: https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
-_node_subkey_local_path: "{{ _node_binary_path }}/subkey"
+_node_chain_backup_http_rclone_deb: "https://downloads.rclone.org/v1.62.2/rclone-v1.62.2-linux-amd64.deb"
 
 _node_profiles:
   validator:
@@ -73,20 +72,25 @@ _node_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_relaych
 _node_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_relaychain_chainspec.json"
 
 _node_restore_relaychain: "{{
+                            (node_chain_backup_restoring_type == 'http' and ( node_chain_backup_http_base_url != '' or node_chain_backup_http_url != '')) or
                             (node_chain_backup_restoring_type == 'gcp' and ( node_chain_backup_gcp_bucket != '' or node_chain_backup_gcp_path != '')) or
                             (node_chain_backup_restoring_type == 'tar' and node_chain_backup_url != '')
                             }}"
 _node_chain_backup_data:
   part: relaychain
   restoring_type: "{{ node_chain_backup_restoring_type }}"
-  force_restoring: "{{ node_chain_backup_force_restoring }}"
   chain_path: "{{ _node_data_chain_path }}"
+  db_folder: "{{ 'paritydb' if node_paritydb_enable else 'db' }}"
   tar_url: "{{ node_chain_backup_url }}"
-  gcp_path: "{{ node_chain_backup_gcp_bucket +
+  gcp_url: "{{ node_chain_backup_gcp_bucket +
   node_chain +
   ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive') }}"
-  custom_gcp_path: "{{ node_chain_backup_gcp_path }}"
-  db_folder: "{{ 'paritydb' if node_paritydb_enable else 'db' }}"
+  custom_gcp_url: "{{ node_chain_backup_gcp_path }}"
+  http_url: "{{ node_chain_backup_http_base_url + '/' +
+  node_chain +
+  ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive') }}"
+  custom_http_url: "{{ node_chain_backup_http_url }}"
+
 
 
 #####################################################################################
@@ -98,17 +102,22 @@ _node_parachain_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name 
 _node_parachain_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_parachain_chainspec.json"
 
 _node_restore_parachain: "{{ node_parachain_role != '' and
-                            ((node_parachain_chain_backup_restoring_type == 'gcp' and (node_parachain_chain_backup_gcp_bucket != '' or node_parachain_chain_backup_gcp_path != '' )) or
+                            ((node_parachain_chain_backup_restoring_type == 'http' and (node_parachain_chain_backup_http_base_url != '' or node_parachain_chain_backup_http_url != '' )) or
+                            (node_parachain_chain_backup_restoring_type == 'gcp' and (node_parachain_chain_backup_gcp_bucket != '' or node_parachain_chain_backup_gcp_path != '' )) or
                             (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != ''))
                             }}"
 _node_parachain_chain_backup_data:
   part: parachain
   restoring_type: "{{ node_parachain_chain_backup_restoring_type }}"
-  force_restoring: "{{ node_parachain_chain_backup_force_restoring }}"
   chain_path: "{{ _node_parachain_data_chain_path }}"
+  db_folder: "{{ 'paritydb' if node_parachain_paritydb_enable else 'db' }}"
   tar_url: "{{ node_parachain_chain_backup_url }}"
-  gcp_path: "{{ node_parachain_chain_backup_gcp_bucket +
+  gcp_url: "{{ node_parachain_chain_backup_gcp_bucket +
   node_parachain_chain +
   ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
-  custom_gcp_path: "{{ node_parachain_chain_backup_gcp_path }}"
-  db_folder: "{{ 'paritydb' if node_parachain_paritydb_enable else 'db' }}"
+  custom_gcp_url: "{{ node_parachain_chain_backup_gcp_path }}"
+  http_url: "{{ node_parachain_chain_backup_http_base_url + '/' +
+  node_parachain_chain +
+  ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
+  custom_http_url: "{{ node_parachain_chain_backup_http_url }}"
+
