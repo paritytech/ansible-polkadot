@@ -21,7 +21,7 @@
 
   - name: Health check | Run health check
     ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
+      url: "http://127.0.0.1:{{ (node_parachain_relay_chain_rpc_urls | length > 0) | ternary(node_parachain_rpc_port, node_rpc_port) }}"
       method: "POST"
       body_format: "json"
       body:
@@ -46,7 +46,7 @@
 
   - name: Health check | Check the current version using API
     ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
+      url: "http://127.0.0.1:{{ (node_parachain_relay_chain_rpc_urls | length > 0) | ternary(node_parachain_rpc_port, node_rpc_port) }}"
       method: "POST"
       body_format: "json"
       body:
