@@ -172,7 +172,7 @@ node_parachain_wasm_runtime: ""
 
 ### Experimental Feature
 # Remote Relay Chain via RPC
-node_parachain_relay_chain_rpc_urls: [""]
+node_parachain_relay_chain_rpc_urls: []
 
 ### Keys
 ## p2p key
