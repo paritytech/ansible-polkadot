@@ -120,4 +120,3 @@ _node_parachain_chain_backup_data:
   node_parachain_chain +
   ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
   custom_http_url: "{{ node_parachain_chain_backup_http_url }}"
-

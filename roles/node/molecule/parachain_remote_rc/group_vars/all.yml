@@ -1,0 +1,11 @@
+## Molecule
+ansible_user: root
+
+# Common
+node_binary_version: v0.9.430
+node_legacy_rpc_flags: false
+
+node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain
+node_binary_signature: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain.asc
+node_app_name: "shell"
+node_prometheus_file_exporter_path: "/tmp/substrate.prom"

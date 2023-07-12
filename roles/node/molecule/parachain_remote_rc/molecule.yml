@@ -1,0 +1,36 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: ${DRIVER:-docker}
+platforms:
+  - name: molecule-instance-node-parachain-remote-rc-rpc
+    source:
+      alias: debian/bullseye/amd64
+    # DOCKER
+    image: "paritytech/debian11:latest"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    privileged: true
+    pre_build_image: true
+  - name: molecule-instance-node-parachain-remote-rc
+    source:
+      alias: debian/bullseye/amd64
+    image: "paritytech/debian11:latest"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+  options:
+    D: True
+  config_options:
+    defaults:
+      callbacks_enabled: timer
+verifier:
+  name: ansible
+  options:
+    D: True
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
