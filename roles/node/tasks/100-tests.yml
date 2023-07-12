@@ -23,7 +23,7 @@
   when:
     - node_chain == ''
     - node_chainspec == ''
-    - node_parachain_relay_chain_rpc_urls == ''
+    - node_parachain_relay_chain_rpc_urls == []
 
 - name: Test | Check node_parachain_chain
   ansible.builtin.fail:

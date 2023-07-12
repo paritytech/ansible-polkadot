@@ -1,5 +1,0 @@
-# Relaychain
-node_chain: "shell"
-node_rpc_port: 9944
-node_chain_backup_restoring_type: "none"
-

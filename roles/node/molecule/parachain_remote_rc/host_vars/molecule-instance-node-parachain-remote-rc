@@ -1,7 +1,0 @@
-# Parachain
-node_parachain_chain: "shell"
-node_parachain_rpc_port: 9954
-node_parachain_role: "collator"
-node_parachain_chain_backup_restoring_type: "none"
-
-node_parachain_relay_chain_rpc_urls: ["ws://molecule-instance-node-parachain-remote-rc-rpc:9944"]

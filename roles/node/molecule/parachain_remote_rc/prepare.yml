@@ -11,3 +11,14 @@
           - gpg
         update_cache: no
       changed_when: false
+  tasks:
+    - name: "relaychain"
+      ansible.builtin.include_role:
+        name: "node"
+      vars:
+        node_app_name: "relaychain-shell"
+        node_data_root_path: "/opt/{{node_app_name}}"
+        node_chain: "shell"
+        node_rpc_port: 9944
+        node_chain_backup_restoring_type: "none"
+        node_prometheus_file_exporter_path: "/tmp/substrate-rc.prom"
