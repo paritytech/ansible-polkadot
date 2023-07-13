@@ -9,7 +9,6 @@
       vars:
         node_app_name: "parachain-shell"
         node_parachain_chain: "shell"
-        node_parachain_rpc_port: 9954
         node_parachain_role: "collator"
         node_parachain_chain_backup_restoring_type: "none"
         node_parachain_relay_chain_rpc_urls: ["ws://127.0.0.1:9944"]

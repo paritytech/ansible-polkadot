@@ -3,13 +3,6 @@
   hosts: all
   gather_facts: false
   tasks:
-  - name: re-deploy node with wipe
-    ansible.builtin.include_role:
-      name: "node"
-    vars:
-      node_database_wipe: true
-      node_parachain_database_wipe: true
-
   - name: Collect service facts
     ansible.builtin.service_facts:
 

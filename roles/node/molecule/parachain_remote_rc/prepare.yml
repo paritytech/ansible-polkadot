@@ -17,8 +17,13 @@
         name: "node"
       vars:
         node_app_name: "relaychain-shell"
-        node_data_root_path: "/opt/{{node_app_name}}"
-        node_chain: "shell"
+        node_data_root_path: "/opt/{{ node_app_name }}"
+        node_chain: "rococo-dev"
+        node_custom_options: [ '--alice' ]
+        node_binary_version: v0.9.43
+        node_legacy_rpc_flags: false
+        node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
+        node_binary_signature: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot.asc
         node_rpc_port: 9944
         node_chain_backup_restoring_type: "none"
         node_prometheus_file_exporter_path: "/tmp/substrate-rc.prom"
