@@ -20,7 +20,10 @@
 - name: Test | Check node_chain
   ansible.builtin.fail:
     msg: "The 'node_chain' variable can't be empty!"
-  when: node_chain == '' and node_chainspec == ''
+  when:
+    - node_chain == ''
+    - node_chainspec == ''
+    - node_parachain_relay_chain_rpc_urls == []
 
 - name: Test | Check node_parachain_chain
   ansible.builtin.fail:

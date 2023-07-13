@@ -170,6 +170,10 @@ node_parachain_chainspec: ""
 # It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
 node_parachain_wasm_runtime: ""
 
+### Experimental Feature
+# Remote Relay Chain via RPC
+node_parachain_relay_chain_rpc_urls: []
+
 ### Keys
 ## p2p key
 # If it's empty, the node will generate default key file

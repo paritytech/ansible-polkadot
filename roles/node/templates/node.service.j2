@@ -11,11 +11,15 @@ MemoryHigh={{ node_memory_high }}
 MemoryMax={{ node_memory_max }}
 ExecStart={{ _node_binary_file }} \
     $COMMON \
-{% if node_parachain_role != '' %}
+{% if node_parachain_role != '' and node_parachain_relay_chain_rpc_urls != [] %}
+    $PC_NAME $PC_ROLE_SPECIFIC $PC_KEY $PC_CHAIN $PC_REMOTE_RC_URLS $PC_ADDR $PC_CONNECTIONS $PC_DB $PC_TELEMETRY $PC_PRUNING $PC_LOGS $PC_METRICS $PC_WS $PC_RPC $PC_WASM_RUNTIME $PC_CUSTOM_OPTIONS
+{% elif node_parachain_role != '' %}
     $PC_NAME $PC_ROLE_SPECIFIC $PC_KEY $PC_CHAIN $PC_ADDR $PC_CONNECTIONS $PC_DB $PC_TELEMETRY $PC_PRUNING $PC_LOGS $PC_METRICS $PC_WS $PC_RPC $PC_WASM_RUNTIME $PC_CUSTOM_OPTIONS \
     -- \
 {% endif %}
+{% if node_parachain_relay_chain_rpc_urls == [] %}
     $RC_NAME $RC_ROLE_SPECIFIC $RC_KEY $RC_CHAIN $RC_ADDR $RC_CONNECTIONS $RC_DB $RC_TELEMETRY $RC_PRUNING $RC_LOGS $RC_METRICS $RC_WS $RC_RPC $RC_WASM_RUNTIME $RC_CUSTOM_OPTIONS
+{% endif %}
 
 {% if node_syslog_labels != '' %}
 SyslogIdentifier={{ node_syslog_labels }}
