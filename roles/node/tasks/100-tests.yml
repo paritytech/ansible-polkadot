@@ -5,6 +5,13 @@
     msg: "The 'node_binary' variable can't be empty!"
   when: node_binary == ''
 
+- name: Test | Check if separate binary
+  ansible.builtin.fail:
+    msg: "If 'node_separate_binary' is True, 'node_binary' and 'node_binary_signature' should end with '/'"
+  when:
+    - node_separate_binary
+    - not node_binary.endswith('/')
+
 - name: Test | Check if node_binary_signature is a URL
   ansible.builtin.fail:
     msg: "The 'node_binary_signature' variable must be a URL!"

@@ -12,9 +12,9 @@
   ansible.builtin.set_fact:
     _node_temp_binary_file: "{{ _node_temp_dir.path }}/{{ node_app_name }}"
 
-- name: Binary | Download binary
+- name: Binary | Download main binary
   ansible.builtin.get_url:
-    url: "{{ node_binary }}"
+    url: "{{ node_binary }}{{ node_separate_binary_list[0] if node_separate_binary else ''}}"
     dest: "{{ _node_temp_binary_file }}"
     mode: 0755
     owner: "root"
@@ -25,15 +25,39 @@
   check_mode: false
   changed_when: false
 
+- name: Binary | Download auxiliary binaries
+  ansible.builtin.get_url:
+    url: "{{ node_binary }}{{ item }}"
+    dest: "{{ _node_temp_dir.path }}"
+    mode: 0755
+    owner: "root"
+    group: "root"
+    timeout: 30
+    headers:
+      PRIVATE-TOKEN: "{{ node_binary_download_private_token }}"
+  check_mode: false
+  changed_when: false
+  when: node_separate_binary
+  loop: "{{ node_separate_binary_list[1:] }}"
+
 - name: Binary | GPG signature verification
   block:
 
-    - name: Binary | Download GPG signature
+    - name: Binary | Download GPG signature for main binary
       ansible.builtin.get_url:
-        url: "{{ node_binary_signature }}"
+        url: "{{ node_binary_signature }}{{ node_separate_binary_list[0] + '.asc' if node_separate_binary else ''}}"
         dest: "{{ _node_temp_dir.path }}/{{ node_app_name }}.asc"
       check_mode: false
       changed_when: false
+
+    - name: Binary | Download GPG signature for auxiliary binaries
+      ansible.builtin.get_url:
+        url: "{{ node_binary_signature }}{{ item }}.asc"
+        dest: "{{ _node_temp_dir.path }}/{{ item }}.asc"
+      check_mode: false
+      changed_when: false
+      when: node_separate_binary
+      loop: "{{ node_separate_binary_list[1:] }}"
 
     - name: Binary | Import release GPG public key
       ansible.builtin.command: |
@@ -43,13 +67,23 @@
       failed_when: _node_keyout.rc != 0
       check_mode: false
 
-    - name: Binary | Verify GPG signature
+    - name: Binary | Verify GPG signature for main binary
       ansible.builtin.command: |
         {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ node_app_name }}.asc
       register: _node_verifyout
       check_mode: false
       changed_when: false
       failed_when: _node_verifyout.rc != 0
+
+    - name: Binary | Verify GPG signature for auxiliary binaries
+      ansible.builtin.command: |
+        {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ item }}.asc
+      register: _node_verifyout
+      check_mode: false
+      changed_when: false
+      failed_when: _node_verifyout.rc != 0
+      when: node_separate_binary
+      loop: "{{ node_separate_binary_list[1:] }}"
 
   when: node_binary_signature != ''
 
@@ -93,9 +127,40 @@
     path: "{{ _node_binary_file | dirname }}"
   register: _node_binary_path_stat
 
+- name: Binary | Migration between versions
+  block:
+    - name: Binary | Check new version
+      ansible.builtin.command: "{{ _node_temp_binary_file }} --help"
+      register: _node_new_help
+      check_mode: false
+      changed_when: false
+    - name: Binary | Setup supported flags
+      ansible.builtin.set_fact:
+        _node_legacy_rpc_flags_supported: "{{ '--ws-port' in _node_new_help }}"
+        _node_separate_binary_supported: "{{ '--workers-path' in _node_new_help }}"
+
+    - name: Binary | Check new rpc flags
+      ansible.builtin.fail:
+        msg: "ERROR: RPC flag --ws-port {{ 'IS' if _node_legacy_rpc_flags_supported else 'NOT' }} supported. 'node_legacy_rpc_flags' should be set to {{ _node_legacy_rpc_flags_supported }}"
+      when:
+        # XOR (skip fail if both true or both false)
+        - node_legacy_rpc_flags or _node_legacy_rpc_flags_supported
+        - not (node_legacy_rpc_flags and _node_legacy_rpc_flags_supported)
+
+    - name: Binary | Check new rpc flags
+      ansible.builtin.fail:
+        msg: >
+          ERROR: RPC flag --workers-path {{ 'IS' if _node_separate_binary_supported else 'NOT' }} supported. 
+          'node_separate_binary' should be set to {{ _node_separate_binary_supported }, 
+          you may also need to update the 'node_binary' and 'node_separate_binary_list' variables.
+      when:
+        # XOR (skip fail if both true or both false)
+        - node_separate_binary or _node_separate_binary_supported
+        - not (node_separate_binary and _node_separate_binary_supported)
+
 # We don't need checking of hashes. The copy module does it itself.
 # If you have the same binary file you will see a green check in the check mode.
-- name: Binary | Copy new binary
+- name: Binary | Copy new main binary
   ansible.builtin.copy:
     src: "{{ _node_temp_binary_file }}"
     dest: "{{ _node_binary_file }}"
@@ -105,6 +170,19 @@
     group: "{{ node_user }}"
   notify: restart service {{ node_handler_id }}
   ignore_errors: "{{ not _node_binary_path_stat.stat.exists }}"
+
+- name: Binary | Copy new auxiliary binaries
+  ansible.builtin.copy:
+    src: "{{ _node_temp_dir.path }}/{{ item }}"
+    dest: {{ _node_binary_path }}/{{ item }}"
+    remote_src: yes
+    mode: 0755
+    owner: "{{ node_user }}"
+    group: "{{ node_user }}"
+  notify: restart service {{ node_handler_id }}
+  ignore_errors: "{{ not _node_binary_path_stat.stat.exists }}"
+  when: node_separate_binary
+  loop: "{{ node_separate_binary_list[1:] }}"
 
 - name: Binary | Block
   block:
