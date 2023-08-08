@@ -136,9 +136,8 @@
       changed_when: false
     - name: Binary | Setup supported flags
       ansible.builtin.set_fact:
-        _node_legacy_rpc_flags_supported: "{{ '--ws-port' in _node_new_help }}"
-        _node_separate_binary_supported: "{{ '--workers-path' in _node_new_help }}"
-
+        _node_legacy_rpc_flags_supported: "{{ '--ws-port' in _node_new_help.stdout }}"
+        _node_separate_binary_supported: "{{ '--workers-path' in _node_new_help.stdout }}"
     - name: Binary | Check new rpc flags
       ansible.builtin.fail:
         msg: "ERROR: RPC flag --ws-port {{ 'IS' if _node_legacy_rpc_flags_supported else 'NOT' }} supported. 'node_legacy_rpc_flags' should be set to {{ _node_legacy_rpc_flags_supported }}"
@@ -174,7 +173,7 @@
 - name: Binary | Copy new auxiliary binaries
   ansible.builtin.copy:
     src: "{{ _node_temp_dir.path }}/{{ item }}"
-    dest: {{ _node_binary_path }}/{{ item }}"
+    dest: "{{ _node_binary_path }}/{{ item }}"
     remote_src: yes
     mode: 0755
     owner: "{{ node_user }}"
