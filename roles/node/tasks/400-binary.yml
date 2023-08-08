@@ -146,11 +146,11 @@
         - node_legacy_rpc_flags or _node_legacy_rpc_flags_supported
         - not (node_legacy_rpc_flags and _node_legacy_rpc_flags_supported)
 
-    - name: Binary | Check new rpc flags
+    - name: Binary | Check new worker flags
       ansible.builtin.fail:
         msg: >
-          ERROR: RPC flag --workers-path {{ 'IS' if _node_separate_binary_supported else 'NOT' }} supported. 
-          'node_separate_binary' should be set to {{ _node_separate_binary_supported }, 
+          ERROR: node flag --workers-path {{ 'IS' if _node_separate_binary_supported else 'NOT' }} supported. 
+          'node_separate_binary' should be set to {{ _node_separate_binary_supported }}, 
           you may also need to update the 'node_binary' and 'node_separate_binary_list' variables.
       when:
         # XOR (skip fail if both true or both false)
