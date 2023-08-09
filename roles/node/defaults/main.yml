@@ -22,7 +22,7 @@ node_binary_signature: ""
 
 # Set it to true if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
 node_separate_binary: false
-# List of binders to download if node_separate_binary is True.
+# List of binaries to download if node_separate_binary is True.
 # The first element is the main binary, and the rest are auxiliary binaries.
 node_separate_binary_list:
   - polkadot
