@@ -20,6 +20,16 @@ node_binary_release_key_id: 9D4B2B6EB8F97156D19669A9FF0812D491B96798
 # GPG signature URL. When left empty, binary verification will not be executed
 node_binary_signature: ""
 
+# Set it to true if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
+node_separate_binary: false
+# List of binaries to download if node_separate_binary is True.
+# The first element is the main binary, and the rest are auxiliary binaries.
+node_separate_binary_list:
+  - polkadot
+  - polkadot-prepare-worker
+  - polkadot-execute-worker
+
+
 ### Node preferences
 # You can redefine any variables from playbooks directly
 # Values from the "_node_profiles" are used by default

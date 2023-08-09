@@ -30,7 +30,7 @@ jobs:
         with:
           channel: latest/stable
       - name: Setup Python modules
-        run: pip3 install yamllint ansible ansible-lint molecule molecule-plugins[docker] molecule-lxd docker
+        run: pip3 install PyYAML==5.3.1 yamllint ansible ansible-lint molecule molecule-plugins[docker] molecule-lxd docker
       - name: Run molecule
         run: molecule test --all
         working-directory: "${{ github.repository }}/${{ inputs.role-path }}"
