@@ -91,8 +91,9 @@
 
 - name: Restore {{ item.part }} | HTTP restoring | Download chain backup
   ansible.builtin.command: |
-    rclone copy -v --contimeout=1m --retries 6 --retries-sleep 10 --disable-http2 --http-no-head --no-traverse
-    --transfers={{ ansible_processor_vcpus * 5 }} --http-url {{ _node_chain_backup_http_full_url }} :http:
+    rclone copy -v --contimeout=1m --retries 6 --retries-sleep 10 --error-on-no-transfer --inplace --no-gzip-encoding
+    --disable-http2 --http-no-head --no-traverse --size-only --transfers={{ ansible_processor_vcpus * 5 }}
+    --http-url {{ _node_chain_backup_http_full_url }} :http:
     {{ _node_backup_dl_path | quote }} --files-from-raw {{ _node_temp_dir.path }}/{{ item.part }}-files.txt
   changed_when: true
   notify: restart service {{ node_handler_id }}

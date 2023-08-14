@@ -27,7 +27,7 @@ _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
 _node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
 _node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"
 
-_node_chain_backup_http_rclone_deb: "https://downloads.rclone.org/v1.62.2/rclone-v1.62.2-linux-amd64.deb"
+_node_chain_backup_http_rclone_deb: "https://downloads.rclone.org/v1.63.1/rclone-v1.63.1-linux-amd64.deb"
 
 _node_profiles:
   validator:
