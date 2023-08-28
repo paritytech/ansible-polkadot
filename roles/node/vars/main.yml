@@ -21,8 +21,8 @@ _node_memory_profiler_log_path: "{% if node_memory_profiler_log_path != '' -%}
   {%- else -%}
   {{ _node_user_home_path }}/logs
   {%- endif %}"
-_node_binary_path: "{{ _node_user_home_path }}/bin"
-_node_binary_file: "{{ _node_binary_path }}/{{ node_app_name }}"
+_node_binary_path: "{{ _node_user_home_path }}/bin/{{ node_app_name }}"
+_node_main_binary_file_name: node
 _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
 _node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
 _node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"

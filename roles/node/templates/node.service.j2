@@ -9,7 +9,7 @@ User={{ node_user }}
 Group={{ node_user }}
 MemoryHigh={{ node_memory_high }}
 MemoryMax={{ node_memory_max }}
-ExecStart={{ _node_binary_file }} \
+ExecStart={{ _node_binary_path }}/{{ _node_main_binary_file_name }} \
     $COMMON \
 {% if node_parachain_role != '' and node_parachain_relay_chain_rpc_urls != [] %}
     $PC_NAME $PC_ROLE_SPECIFIC $PC_KEY $PC_CHAIN $PC_REMOTE_RC_URLS $PC_ADDR $PC_CONNECTIONS $PC_DB $PC_TELEMETRY $PC_PRUNING $PC_LOGS $PC_METRICS $PC_WS $PC_RPC $PC_WASM_RUNTIME $PC_CUSTOM_OPTIONS
