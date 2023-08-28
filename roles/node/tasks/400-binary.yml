@@ -2,7 +2,7 @@
 
 - name: Binary | Set variables
   ansible.builtin.set_fact:
-    _node_binaries: "{{ [{'url': node_binary, 'signature_url': node_binary_signature, 'dst': 'polkadot'}] }}"
+    _node_binaries: "{{ [{'url': node_binary, 'signature_url': node_binary_signature, 'dst': _node_main_binary_file_name}] }}"
     _node_temp_binary_path: "{{ _node_temp_dir.path }}/bin"
 
 - name: Binary | Create bin directory
@@ -84,18 +84,18 @@
   when: node_binary_signature != '' or node_prepare_worker_binary_signature != '' or node_execute_worker_binary_signature != ''
 
 - name: Binary | Check new version
-  ansible.builtin.command: "{{ _node_temp_binary_path }}/polkadot --version"
+  ansible.builtin.command: "{{ _node_temp_binary_path }}/{{ _node_main_binary_file_name }} --version"
   register: _node_new_version
   check_mode: false
   changed_when: false
 
 - name: Binary | Check current binary file exists
   ansible.builtin.stat:
-    path: "{{ _node_binary_path }}/polkadot"
+    path: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }}"
   register: _node_binary_file_stat
 
 - name: Binary | Check current version
-  ansible.builtin.command: "{{ _node_binary_path }}/polkadot --version"
+  ansible.builtin.command: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }} --version"
   register: _node_current_version
   when: _node_binary_file_stat.stat.exists
   check_mode: false
@@ -127,7 +127,7 @@
   block:
 
     - name: Binary | Check new version
-      ansible.builtin.command: "{{ _node_temp_binary_path }}/polkadot --help"
+      ansible.builtin.command: "{{ _node_temp_binary_path }}/{{ _node_main_binary_file_name }} --help"
       register: _node_new_help
       check_mode: false
       changed_when: false
@@ -150,7 +150,10 @@
         msg: >
           ERROR: node flag --workers-path {{ 'IS' if _node_separate_binary_supported else 'NOT' }} supported. 
           'node_prepare_worker_binary' and 'node_execute_worker_binary' variables should be set
-      when: _node_separate_binary_supported and (node_prepare_worker_binary == '' or node_execute_worker_binary == '')
+      when:
+        - _node_separate_binary_supported
+        - node_role == 'validator'
+        - node_prepare_worker_binary == '' or node_execute_worker_binary == ''
 
 # We don't need checking of hashes. The copy module does it itself.
 # If you have the same binary file you will see a green check in the check mode.
