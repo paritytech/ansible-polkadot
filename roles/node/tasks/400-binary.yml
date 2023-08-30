@@ -10,21 +10,6 @@
     path: "{{ _node_binary_path }}"
   register: _node_binary_path_stat
 
-- name: Post tasks | Remove old binary file
-  ansible.builtin.file:
-    path: "{{ _node_binary_path }}"
-    state: absent
-  when: _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir
-
-- name: Binary | Create bin directory
-  ansible.builtin.file:
-    path: "{{ _node_binary_path }}"
-    state: directory
-    mode: "0755"
-    owner: "{{ node_user }}"
-    group: "{{ node_user }}"
-  ignore_errors: "{{ ansible_check_mode and _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
-
 - name: Binary | Create temp bin directory
   ansible.builtin.file:
     path: "{{ _node_temp_binary_path }}"
@@ -162,6 +147,21 @@
         - _node_separate_binary_supported
         - node_role == 'validator'
         - node_prepare_worker_binary == '' or node_execute_worker_binary == ''
+
+- name: Post tasks | Remove old binary file
+  ansible.builtin.file:
+    path: "{{ _node_binary_path }}"
+    state: absent
+  when: _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir
+
+- name: Binary | Create bin directory
+  ansible.builtin.file:
+    path: "{{ _node_binary_path }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ node_user }}"
+    group: "{{ node_user }}"
+  ignore_errors: "{{ ansible_check_mode and _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
 
 # We don't need checking of hashes. The copy module does it itself.
 # If you have the same binary file you will see a green check in the check mode.
