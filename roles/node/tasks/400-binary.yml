@@ -23,7 +23,7 @@
     mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-  ignore_errors: "{{ _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
+  ignore_errors: "{{ ansible_check_mode and _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
 
 - name: Binary | Create temp bin directory
   ansible.builtin.file:
@@ -175,7 +175,7 @@
     group: "{{ node_user }}"
   loop: "{{ _node_binaries }}"
   notify: restart service {{ node_handler_id }}
-  ignore_errors: "{{ not _node_binary_path_stat.stat.exists }}"
+  ignore_errors: "{{ ansible_check_mode and (not _node_binary_path_stat.stat.exists or (_node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir)) }}"
 
 - name: Binary | Block
   block:
