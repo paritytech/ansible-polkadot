@@ -148,7 +148,7 @@
         - node_role == 'validator'
         - node_prepare_worker_binary == '' or node_execute_worker_binary == ''
 
-- name: Post tasks | Remove old binary file
+- name: Binary | Remove old binary file
   ansible.builtin.file:
     path: "{{ _node_binary_path }}"
     state: absent
