@@ -5,6 +5,17 @@
     _node_binaries: "{{ [{'url': node_binary, 'signature_url': node_binary_signature, 'dst': _node_main_binary_file_name}] }}"
     _node_temp_binary_path: "{{ _node_temp_dir.path }}/bin"
 
+- name: Binary | Check current binary path exists
+  ansible.builtin.stat:
+    path: "{{ _node_binary_path }}"
+  register: _node_binary_path_stat
+
+- name: Post tasks | Remove old binary file
+  ansible.builtin.file:
+    path: "{{ _node_binary_path }}"
+    state: absent
+  when: _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir
+
 - name: Binary | Create bin directory
   ansible.builtin.file:
     path: "{{ _node_binary_path }}"
@@ -12,6 +23,7 @@
     mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
+  ignore_errors: "{{ _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
 
 - name: Binary | Create temp bin directory
   ansible.builtin.file:
@@ -93,11 +105,12 @@
   ansible.builtin.stat:
     path: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }}"
   register: _node_binary_file_stat
+  when: _node_binary_path_stat.stat.exists and _node_binary_path_stat.stat.isdir
 
 - name: Binary | Check current version
   ansible.builtin.command: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }} --version"
   register: _node_current_version
-  when: _node_binary_file_stat.stat.exists
+  when: _node_binary_file_stat.stat is defined and _node_binary_file_stat.stat.exists and _node_binary_file_stat.stat.isreg
   check_mode: false
   changed_when: false
 
@@ -117,11 +130,6 @@
   ansible.builtin.debug:
     msg: "{% if _node_version_equal -%}Versions are equal!
     {%- else -%}{{ _node_version_msg }}{%- endif %}"
-
-- name: Binary | Check current binary path exists
-  ansible.builtin.stat:
-    path: "{{ _node_binary_path }}"
-  register: _node_binary_path_stat
 
 - name: Binary | Migration between versions
   block:
@@ -172,16 +180,16 @@
 - name: Binary | Block
   block:
 
-  - name: Binary | Print _node_binary_version_from_url
-    ansible.builtin.debug:
-      var: _node_binary_version_from_url
+    - name: Binary | Print _node_binary_version_from_url
+      ansible.builtin.debug:
+        var: _node_binary_version_from_url
 
-  - name: Binary | Create annotation in Prometheus
-    ansible.builtin.template:
-      src: annotation.j2
-      dest: "{{ node_prometheus_file_exporter_path }}"
-      owner: root
-      group: root
-      mode: '0644'
+    - name: Binary | Create annotation in Prometheus
+      ansible.builtin.template:
+        src: annotation.j2
+        dest: "{{ node_prometheus_file_exporter_path }}"
+        owner: root
+        group: root
+        mode: '0644'
 
   when: node_prometheus_file_exporter_path != ''
