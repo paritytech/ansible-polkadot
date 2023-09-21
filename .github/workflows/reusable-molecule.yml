@@ -1,0 +1,42 @@
+on:
+  workflow_call:
+    inputs:
+      role-name:
+        required: true
+        type: string
+      molecule-driver:
+        required: true
+        type: string
+      ansible-version:
+        required: false
+        type: string
+        default: 8.4.0
+jobs:
+  molecule:
+    runs-on: ubuntu-22.04
+    env:
+      DRIVER: ${{ inputs.molecule-driver }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Setup Python modules
+        # PyYAML==5.3.1 fixes the 'The license_file parameter is deprecated, use license_files instead.' error
+        # 5.4.1 version still has the issue
+        run: pip3 install --no-cache-dir PyYAML==5.3.1 yamllint ansible==${{ inputs.ansible-version }} ansible-lint molecule molecule-plugins[docker] molecule-lxd docker
+      - name: Print Ansible version
+        run: ansible --version
+      - name: Setup LXD
+        if: ${{ inputs.molecule-driver == 'lxd' }}
+        # https://github.com/canonical/setup-lxd
+        uses: canonical/setup-lxd@v0.1.1
+        with:
+          channel: latest/stable
+      - name: Run molecule tests
+        run: molecule test --all
+        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"

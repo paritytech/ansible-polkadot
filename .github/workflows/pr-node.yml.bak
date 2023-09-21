@@ -1,0 +1,20 @@
+name: check PR (node)
+
+on:
+  pull_request:
+    paths:
+      - roles/node/**
+      - .github/**
+
+jobs:
+  check-version:
+    uses: ./.github/workflows/reusable-check-version.yml
+  run-molecule-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        molecule-driver: [lxd, docker]
+    uses: ./.github/workflows/reusable-molecule.yml
+    with:
+      role-name: node
+      molecule-driver: ${{ matrix.molecule-driver }}
