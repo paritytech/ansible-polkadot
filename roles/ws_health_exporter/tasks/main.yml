@@ -36,7 +36,7 @@
         - "prometheus-client==0.16.0"
         - "websocket-client==1.5.1"
         - "apscheduler==3.10.1"
-        - "flask==2.2.3"
+        - "flask==3.0.0"
         - "environs==9.5.0"
         - "waitress==2.1.2"
       virtualenv: "{{ _ws_health_exporter_venv }}"

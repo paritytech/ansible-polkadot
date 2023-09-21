@@ -1,0 +1,57 @@
+on:
+  workflow_call:
+    inputs:
+      compare-versions:
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      current-galaxy-version:
+        description: "Current Galaxy version"
+        value: ${{ jobs.check-version.outputs.current-galaxy-version }}
+jobs:
+  check-version:
+    runs-on: ubuntu-22.04
+    outputs:
+      current-galaxy-version: ${{ steps.check-current-version.outputs.current-galaxy-version }}
+    steps:
+      - name: Setup Python modules
+        run: pip3 install --no-cache-dir yq
+      - name: Checkout current ref
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+      - name: Checkout main ref
+        if: ${{ inputs.compare-versions }}
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          path: "main/${{ github.repository }}"
+      - name: Check the current version
+        id: check-current-version
+        run: |
+          CURRENT_GALAXY_VERSION=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          echo "Current Galaxy version: ${CURRENT_GALAXY_VERSION}"
+          if [ "$CURRENT_GALAXY_VERSION" != 'null' ]
+          then
+            echo "CURRENT_GALAXY_VERSION=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+            echo "current-galaxy-version=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Check the version in the main branch
+        if: ${{ inputs.compare-versions }}
+        run: |
+          MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          echo "Galaxy version in the main branch: ${MAIN_GALAXY_VERSION}"
+          echo "MAIN_GALAXY_VERSION=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+      - name: Validate the current version
+        if: ${{ ! env.CURRENT_GALAXY_VERSION }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setFailed('Your Galaxy version is absent or empty!')
+      - name: Compare versions
+        if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION >= env.CURRENT_GALAXY_VERSION }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setFailed('Your Galaxy version is lower than the version in the main branch or equal. Please bump your version!')

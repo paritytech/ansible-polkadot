@@ -1,0 +1,40 @@
+on:
+  workflow_call:
+    inputs:
+      ansible-version:
+        required: false
+        type: string
+        default: 8.4.0
+    secrets:
+      api-token:
+        required: true
+jobs:
+  deploy-galaxy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Setup Python modules
+        # PyYAML==5.3.1 fixes the 'The license_file parameter is deprecated, use license_files instead.' error
+        # the 5.4.1 version still has the issue
+        run: pip3 install --no-cache-dir PyYAML==5.3.1 ansible==${{ inputs.ansible-version }} yq
+      - name: Print Ansible version
+        run: ansible --version
+      - name: Build collection
+        run: ansible-galaxy collection build "${{ github.repository }}"
+      - name: Save API token
+        run: echo '${{ secrets.api-token }}' > api-token
+      - name: Publish  collection
+        run: |
+          GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
+          GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.name' | tr -d '\n')
+          VERSION=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          ansible-galaxy collection publish  ${GALAXY_NAMESPACE}-${GALAXY_NAME}-${VERSION}.tar.gz  --api-key="$(cat api-token | tr -d '\n')"
+      - name: Remove API token
+        run: rm -v api-token

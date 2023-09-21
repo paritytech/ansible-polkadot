@@ -1,0 +1,8 @@
+name: check Galaxy version
+
+on:
+  pull_request:
+
+jobs:
+  check-version:
+    uses: ./.github/workflows/reusable-check-version.yml

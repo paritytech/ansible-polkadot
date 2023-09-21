@@ -1,0 +1,18 @@
+name: check PR (ws_health_exporter)
+
+on:
+  pull_request:
+    paths:
+      - roles/ws_health_exporter/**
+      - .github/**
+
+jobs:
+  run-molecule-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        molecule-driver: [lxd, docker]
+    uses: ./.github/workflows/reusable-molecule.yml
+    with:
+      role-name: ws_health_exporter
+      molecule-driver: ${{ matrix.molecule-driver }}
