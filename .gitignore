@@ -9,3 +9,4 @@ plan.out
 *.private_key_encrypted
 .idea
 /ansible/collections
+venv
