@@ -1,0 +1,49 @@
+---
+
+- name: node-backup | tests
+  ansible.builtin.include_tasks:
+    file: tests.yml
+    apply:
+      tags: ['node-backup', 'node-backup-tests']
+  tags: ['node-backup', 'node-backup-tests']
+
+- name: node-backup | create directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ item.user }}"
+    group: "{{ item.user }}"
+  loop:
+    - path: "{{ node_backup_base_path }}"
+      user: root
+    - path: "{{ _node_backup_scripts_path }}"
+      user: root
+    - path: "{{ _node_backup_exporter_path }}"
+      user: "{{ node_backup_user }}"
+    - path: "{{ _node_backup_log_path }}"
+      user: root
+    - path: "{{ _node_backup_venv_path }}"
+      user: root
+  tags: [ 'node-backup' ]
+
+- name: node-backup | requirements
+  ansible.builtin.include_tasks:
+    file: requirements.yml
+    apply:
+      tags: [ 'node-backup', 'node-backup-requirements' ]
+  tags: [ 'node-backup', 'node-backup-requirements' ]
+
+- name: node-backup | job
+  ansible.builtin.include_tasks:
+    file: job.yml
+    apply:
+      tags: [ 'node-backup', 'node-backup-job' ]
+  tags: [ 'node-backup', 'node-backup-job' ]
+
+- name: node-backup | exporter
+  ansible.builtin.include_tasks:
+    file: exporter.yml
+    apply:
+      tags: [ 'node-backup', 'node-backup-exporter' ]
+  tags: [ 'node-backup', 'node-backup-exporter' ]

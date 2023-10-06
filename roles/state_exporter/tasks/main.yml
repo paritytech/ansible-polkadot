@@ -1,0 +1,53 @@
+---
+
+- block:
+
+    - name: Exporter | Install apt packages
+      ansible.builtin.package:
+        name: "{{ packages }}"
+        state: present
+        update_cache: true
+      vars:
+        packages:
+          - "python3-prometheus-client"
+          - "python3-schedule"
+          - "python3-psutil"
+
+    - name: Exporter | Create directory
+      ansible.builtin.file:
+        path: "{{ state_exporter_file | dirname }}"
+        state: directory
+        mode: 0755
+        owner: "{{ state_exporter_user }}"
+        group: "{{ state_exporter_user }}"
+
+    - name: Exporter | Copy exporter
+      ansible.builtin.copy:
+        src: "exporter.py"
+        dest: "{{ state_exporter_file }}"
+        mode: 0755
+        owner: "{{ state_exporter_user }}"
+        group: "{{ state_exporter_user }}"
+      notify: restart state-exporter
+
+    - name: Exporter | Copy exporter systemd unit file
+      ansible.builtin.template:
+        src: ".service.j2"
+        dest: "/etc/systemd/system/{{ state_exporter_name }}.service"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      notify: restart state-exporter
+
+      # to avoid 2 restarts during the first deploy
+    - name: Exporter | Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Exporter | Start exporter service
+      ansible.builtin.systemd:
+        name: "{{ state_exporter_name }}"
+        state: started
+        enabled: true
+        daemon_reload: true
+
+  tags: ['state-exporter']

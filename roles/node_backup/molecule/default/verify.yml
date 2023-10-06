@@ -1,0 +1,47 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: wait until ~10 blocks created
+    ansible.builtin.uri:
+      url: "http://127.0.0.1:9933"
+      method: "POST"
+      body_format: "json"
+      body:
+        id: 1
+        jsonrpc: "2.0"
+        method: "chain_getHeader"
+        params: []
+      return_content: true
+    register: _node_backup_register_header
+    until: _node_backup_register_header.json.result.number | int(base=16) > 10
+    retries: 10
+    delay: 10
+
+  - name: Print current block
+    ansible.builtin.debug:
+      var: _node_backup_register_header.json.result.number |  int(base=16)
+#   # todo add tests
+#
+## a) upload to gcp
+# GCP storage emulator is not available yet (https://github.com/googleapis/google-cloud-python/issues/10300),
+# there are third party emulator, but support of gsutils is broken (https://github.com/oittaa/gcp-storage-emulator/issues/186)
+# when emulator will be available:
+#   1. run and configure emulator
+#   2. run script:
+#  - name: run backup script
+#    ansible.builtin.command: /home/parity/bin/node_backup.sh
+#   3.
+#  - name: "rococo-bob local"
+#    ansible.builtin.include_role:
+#      name: parity.chain.node
+#    vars:
+#      node_rpc_port: 9935
+#      node_paritydb_enable: true
+#      node_app_name: "rococo-local-rpc"
+#
+## b) Test backup-exporter:
+# We can push fake data to backup-exporter (like run bash script).
+# Then we can check the Prometheus endpoint to check and match the results.
+# This will allow checking the code of the exporter.

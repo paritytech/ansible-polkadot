@@ -1,0 +1,8 @@
+---
+
+- name: restart state-exporter
+  ansible.builtin.systemd:
+    name: "{{ state_exporter_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,12 @@
+[Unit]
+Description=Node backup exporter systemd service
+
+[Service]
+Environment=PYTHONUNBUFFERED=True
+ExecStart={{ _node_backup_venv_path }}/bin/python3 {{ _node_backup_exporter_file }}
+Restart=always
+User={{ node_backup_user }}
+Group={{ node_backup_user }}
+
+[Install]
+WantedBy=multi-user.target

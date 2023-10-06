@@ -1,0 +1,51 @@
+---
+
+- name: node-backup | job | set _node_backup_targets variable 1
+  ansible.builtin.set_fact:
+    _node_backup_targets: []
+
+- name: node-backup | job | set _node_backup_targets variable 2
+  ansible.builtin.set_fact:
+    _node_backup_targets: "{{ _node_backup_targets +
+                              [ item | combine({'id': _node_backup_id}, recursive=True) ] }}"
+  vars:
+    _node_backup_id: "{{ (_node_backup_storages[item.type]  + '-' + item.bucket_name + '-' + item.service_name) | regex_replace('[^0-9a-zA-Z]+', '-') }}"
+  loop: "{{ node_backup_targets }}"
+
+- name: node-backup | job | copy single backup scripts
+  ansible.builtin.template:
+    src: "single-backup.sh.j2"
+    dest: "{{ _node_backup_scripts_path }}/{{ item.id }}.sh"
+    mode: 0755
+    owner: "root"
+    group: "root"
+  loop: "{{ _node_backup_targets }}"
+  tags: ['node-backup-test']
+
+- name: node-backup | job | copy common backup script
+  ansible.builtin.template:
+    src: "common-backup.sh.j2"
+    dest: "{{ _node_backup_scripts_path }}/common.sh"
+    mode: 0755
+    owner: "root"
+    group: "root"
+  tags: ['node-backup-test']
+
+- name: node-backup | job | copy backup systemd unit files
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  loop:
+    - "node-backup.service"
+    - "node-backup.timer"
+  notify: restart node-backup timer
+
+- name: node-backup | job | enable timer
+  ansible.builtin.systemd:
+    name: "node-backup.timer"
+    state: started
+    enabled: true
+    daemon_reload: true

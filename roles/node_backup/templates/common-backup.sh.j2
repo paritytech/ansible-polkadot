@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+{% for target in _node_backup_targets %}
+now=$(date +"%Y%m%d-%H%M%S")
+unbuffer bash {{ _node_backup_scripts_path }}/{{ target.id }}.sh "${now}" 2>&1 | tee "{{ _node_backup_log_path }}/{{ target.service_name }}-${now}.txt"
+{% endfor %}

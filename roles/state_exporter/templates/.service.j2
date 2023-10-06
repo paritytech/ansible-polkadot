@@ -1,0 +1,13 @@
+[Unit]
+Description=Node backup exporter systemd service
+
+[Service]
+Environment=PYTHONUNBUFFERED=True
+ExecStart={{ state_exporter_file }}{% if state_exporter_debug %} debug{% endif %}
+
+Restart=always
+User={{ state_exporter_user }}
+Group={{ state_exporter_user}}
+
+[Install]
+WantedBy=multi-user.target
