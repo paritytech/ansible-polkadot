@@ -1,0 +1,6 @@
+---
+
+state_exporter_name: "state-exporter"
+state_exporter_user: "parity"
+state_exporter_file: "/home/{{ state_exporter_user }}/bin/{{ state_exporter_name }}.py"
+state_exporter_debug: false

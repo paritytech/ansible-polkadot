@@ -1,0 +1,6 @@
+[Unit]
+Description=Node backup systemd service
+
+[Service]
+Type=oneshot
+ExecStart={{ _node_backup_scripts_path }}/common.sh
