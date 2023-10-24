@@ -7,15 +7,13 @@
       name: gpg
       update_cache: yes
 
-  - name: Restore {{ item.part }} | GCP restoring | Add Google cloud apt GPG key
-    ansible.builtin.apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-
-  - name: Restore {{ item.part }} | GCP restoring | Add gce-sdk repository
-    ansible.builtin.apt_repository:
-      repo: deb http://packages.cloud.google.com/apt cloud-sdk-{{ ansible_distribution_release }} main
-      filename: /etc/apt/sources.list.d/gce_sdk.list
-      update_cache: yes
+  - name: Restore {{ item.part }} | GCP restoring | Add cloud-sdk repo
+    ansible.builtin.include_role:
+      name: secure_apt
+    vars:
+      secure_apt_key: B53DC80D13EDEF05
+      secure_apt_repositories:
+        - http://packages.cloud.google.com/apt cloud-sdk-{{ ansible_distribution_release }} main
 
   - name: Restore {{ item.part }} | GCP restoring | Install packages
     ansible.builtin.package:
