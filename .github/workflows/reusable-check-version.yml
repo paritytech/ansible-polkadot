@@ -34,32 +34,25 @@ jobs:
       - name: Check the current version
         id: check-current-version
         run: |
-          CURRENT_GALAXY_VERSION_CHAIN=$(cat ${GITHUB_REPOSITORY}/chain/galaxy.yml | yq -r '.version' | tr -d '\n')
-          CURRENT_GALAXY_VERSION_COMMON=$(cat ${GITHUB_REPOSITORY}/common/galaxy.yml | yq -r '.version' | tr -d '\n')
-          
-          echo "Current chain collection Galaxy version: ${CURRENT_GALAXY_VERSION_CHAIN}"
-          if [ "$CURRENT_GALAXY_VERSION_CHAIN" != 'null' ]
-          then
-            echo "CURRENT_GALAXY_VERSION_CHAIN=${CURRENT_GALAXY_VERSION_CHAIN}" >> "${GITHUB_ENV}"
-            echo "current-galaxy-version-chain=${CURRENT_GALAXY_VERSION_CHAIN}" >> "${GITHUB_OUTPUT}"
-          fi
-          
-          echo "Current common collection Galaxy version: ${CURRENT_GALAXY_VERSION_COMMON}"
-          if [ "$CURRENT_GALAXY_VERSION_COMMON" != 'null' ]
-          then
-            echo "CURRENT_GALAXY_VERSION_COMMON=${CURRENT_GALAXY_VERSION_COMMON}" >> "${GITHUB_ENV}"
-            echo "current-galaxy-version-common=${CURRENT_GALAXY_VERSION_COMMON}" >> "${GITHUB_OUTPUT}"
-          fi
+          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          for ROLE in $ROLES; do
+            CURRENT_GALAXY_VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
+            echo "Current ${ROLE} collection Galaxy version: ${CURRENT_GALAXY_VERSION}"
+            if [ "$CURRENT_GALAXY_VERSION" != 'null' ]
+            then
+              echo "CURRENT_GALAXY_VERSION_${ROLE^^}=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+              echo "current-galaxy-version-${ROLE,,}=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_OUTPUT}"
+            fi
+          done
       - name: Check the versions in the main branch
         if: ${{ inputs.compare-versions }}
         run: |
-          MAIN_GALAXY_VERSION_CHAIN=$(cat main/${GITHUB_REPOSITORY}/chain/galaxy.yml | yq -r '.version' | tr -d '\n')
-          echo "Galaxy version of the chain collection in the main branch: ${MAIN_GALAXY_VERSION_CHAIN}"
-          echo "MAIN_GALAXY_VERSION_CHAIN=${MAIN_GALAXY_VERSION_CHAIN}" >> "${GITHUB_ENV}"
-          
-          MAIN_GALAXY_VERSION_COMMON=$(cat main/${GITHUB_REPOSITORY}/common/galaxy.yml | yq -r '.version' | tr -d '\n')
-          echo "Galaxy version of the common collection in the main branch: ${MAIN_GALAXY_VERSION_COMMON}"
-          echo "MAIN_GALAXY_VERSION_COMMON=${MAIN_GALAXY_VERSION_COMMON}" >> "${GITHUB_ENV}"
+          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          for ROLE in $ROLES; do
+            MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
+            echo "Galaxy version of the ${ROLE} collection in the main branch: ${MAIN_GALAXY_VERSION}"
+            echo "MAIN_GALAXY_VERSION_${ROLE^^}=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+          done
       - name: Validate the current version of the chain collection
         if: ${{ ! env.CURRENT_GALAXY_VERSION_CHAIN }}
         uses: actions/github-script@v6
