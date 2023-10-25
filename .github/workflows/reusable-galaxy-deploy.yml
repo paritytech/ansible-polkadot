@@ -30,11 +30,14 @@ jobs:
         run: ansible-galaxy collection build "${{ github.repository }}"
       - name: Save API token
         run: echo '${{ secrets.api-token }}' > api-token
-      - name: Publish  collection
+      - name: Publish collections
         run: |
-          GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
-          GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.name' | tr -d '\n')
-          VERSION=$(cat ${GITHUB_REPOSITORY}/galaxy.yml | yq -r '.version' | tr -d '\n')
-          ansible-galaxy collection publish  ${GALAXY_NAMESPACE}-${GALAXY_NAME}-${VERSION}.tar.gz  --api-key="$(cat api-token | tr -d '\n')"
+          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          for ROLE in $ROLES; do
+            GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
+            GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.name' | tr -d '\n')
+            VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
+            ansible-galaxy collection publish  ${GALAXY_NAMESPACE}-${GALAXY_NAME}-${VERSION}.tar.gz  --api-key="$(cat api-token | tr -d '\n')"
+          done
       - name: Remove API token
         run: rm -v api-token

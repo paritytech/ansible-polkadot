@@ -3,7 +3,7 @@ name: check PR (node_backup)
 on:
   pull_request:
     paths:
-      - roles/node_backup/**
+      - chain/roles/node_backup/**
       - .github/**
 
 jobs:

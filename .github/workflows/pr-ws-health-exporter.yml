@@ -3,7 +3,7 @@ name: check PR (ws_health_exporter)
 on:
   pull_request:
     paths:
-      - roles/ws_health_exporter/**
+      - chain/roles/ws_health_exporter/**
       - .github/**
 
 jobs:
