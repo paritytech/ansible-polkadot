@@ -9,7 +9,7 @@
 
   - name: Restore {{ item.part }} | GCP restoring | Add cloud-sdk repo
     ansible.builtin.include_role:
-      name: secure_apt
+      name: paritytech.common.secure_apt
     vars:
       secure_apt_key: B53DC80D13EDEF05
       secure_apt_repositories:

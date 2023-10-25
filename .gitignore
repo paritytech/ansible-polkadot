@@ -1,12 +1,10 @@
 .*.swp
-.terraform
-plan.out
-*.tfstate.backup
 /*json
 /*key
 *private.key
 *service-account-key.json
 *.private_key_encrypted
-.idea
+../.idea
 /ansible/collections
 venv
+.idea

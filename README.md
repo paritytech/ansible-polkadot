@@ -1,4 +1,4 @@
-# Ansible Collection - paritytech.chain_operations
+# Parity Ansible Collections
 
 ## Install Ansible collections
 
@@ -24,4 +24,4 @@ ansible-galaxy collection install -f -r requirements.yml
 
 ## Roles
 
-Node role - [README](./roles/node/README.md) 
+Node role - [README](chain/roles/node/README.md) 

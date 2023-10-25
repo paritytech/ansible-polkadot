@@ -13,7 +13,7 @@ Example Playbook
 
   - hosts: servers 
     roles:
-      - secure_apt
+      - paritytech.common.secure_apt
     vars:
       secure_apt_key: B53DC80D13EDEF05
       secure_apt_repositories:
