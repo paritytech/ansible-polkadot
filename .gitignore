@@ -4,7 +4,6 @@
 *private.key
 *service-account-key.json
 *.private_key_encrypted
-../.idea
 /ansible/collections
 venv
 .idea
