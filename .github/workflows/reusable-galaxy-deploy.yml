@@ -32,8 +32,9 @@ jobs:
         run: echo '${{ secrets.api-token }}' > api-token
       - name: Publish collections
         run: |
-          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          ROLES=$(find ${GITHUB_REPOSITORY} -maxdepth 1 -type d -name '[!.]*' ! -name 'ansible-galaxy')
           for ROLE in $ROLES; do
+            ROLE=$(basename "$ROLE")
             GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
             GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.name' | tr -d '\n')
             VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
