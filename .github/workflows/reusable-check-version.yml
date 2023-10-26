@@ -34,7 +34,7 @@ jobs:
       - name: Check the current version
         id: check-current-version
         run: |
-          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          ROLES=$(find $GITHUB_REPOSITORY -maxdepth 1 -type d -name '[!.]*')
           for ROLE in $ROLES; do
             CURRENT_GALAXY_VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
             echo "Current ${ROLE} collection Galaxy version: ${CURRENT_GALAXY_VERSION}"
@@ -47,7 +47,7 @@ jobs:
       - name: Check the versions in the main branch
         if: ${{ inputs.compare-versions }}
         run: |
-          ROLES=$(find . -maxdepth 1 -type d -name '[!.]*')
+          ROLES=$(find $GITHUB_REPOSITORY -maxdepth 1 -type d -name '[!.]*')
           for ROLE in $ROLES; do
             MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
             echo "Galaxy version of the ${ROLE} collection in the main branch: ${MAIN_GALAXY_VERSION}"
