@@ -4,6 +4,9 @@ on:
       role-name:
         required: true
         type: string
+      collection-name:
+        required: true
+        type: string
       molecule-driver:
         required: true
         type: string
@@ -39,4 +42,4 @@ jobs:
           channel: latest/stable
       - name: Run molecule tests
         run: molecule test --all
-        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
+        working-directory: "${{ github.repository }}/${{ inputs.collection-name }}/roles/${{ inputs.role-name }}"

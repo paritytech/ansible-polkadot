@@ -1,4 +1,4 @@
-# Ansible Collection - paritytech.chain_operations
+# Parity Ansible Collections
 
 ## Install Ansible collections
 
@@ -24,4 +24,12 @@ ansible-galaxy collection install -f -r requirements.yml
 
 ## Roles
 
-Node role - [README](./roles/node/README.md) 
+### chain
+key_inject - [README](chain/roles/key_inject/README.md)  
+node - [README](chain/roles/node/README.md)  
+node_backup - [README](chain/roles/node_backup/README.md)  
+state_exporter - [README](chain/roles/state_exporter/README.md)  
+ws_health_exporter - [README](chain/roles/ws_health_exporter/README.md)
+
+### common
+secure_apt - [README](common/roles/secure_apt/README.md)

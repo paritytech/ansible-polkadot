@@ -3,7 +3,7 @@ name: check PR (node_backup)
 on:
   pull_request:
     paths:
-      - roles/node_backup/**
+      - chain/roles/node_backup/**
       - .github/**
 
 jobs:
@@ -15,4 +15,5 @@ jobs:
     uses: ./.github/workflows/reusable-molecule.yml
     with:
       role-name: node
+      collection-name: chain
       molecule-driver: ${{ matrix.molecule-driver }}
