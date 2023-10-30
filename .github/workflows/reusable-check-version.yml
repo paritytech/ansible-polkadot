@@ -5,19 +5,18 @@ on:
         required: false
         type: boolean
         default: true
+      collection-name:
+        required: true
+        type: string
     outputs:
-      current-galaxy-version-chain:
-        description: "Current chain collection Galaxy version"
-        value: ${{ jobs.check-version.outputs.current-galaxy-version-chain }}
-      current-galaxy-version-common:
-        description: "Current common collection Galaxy version"
-        value: ${{ jobs.check-version.outputs.current-galaxy-version-common }}
+      current-galaxy-version:
+        description: "Current Galaxy version"
+        value: ${{ jobs.check-version.outputs.current-galaxy-version }}
 jobs:
   check-version:
     runs-on: ubuntu-22.04
     outputs:
-      current-galaxy-version-chain: ${{ steps.check-current-version.outputs.current-galaxy-version-chain }}
-      current-galaxy-version-common: ${{ steps.check-current-version.outputs.current-galaxy-version-common }}
+      current-galaxy-version: ${{ steps.check-current-version.outputs.current-galaxy-version }}
     steps:
       - name: Setup Python modules
         run: pip3 install --no-cache-dir yq
@@ -34,48 +33,28 @@ jobs:
       - name: Check the current version
         id: check-current-version
         run: |
-          ROLES=$(find ${GITHUB_REPOSITORY} -maxdepth 1 -type d -name '[!.]*' ! -name 'ansible-galaxy')
-          for ROLE in $ROLES; do
-            ROLE=$(basename "$ROLE")
-            CURRENT_GALAXY_VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
-            echo "Current ${ROLE} collection Galaxy version: ${CURRENT_GALAXY_VERSION}"
-            if [ "$CURRENT_GALAXY_VERSION" != 'null' ]
-            then
-              echo "CURRENT_GALAXY_VERSION_${ROLE^^}=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_ENV}"
-              echo "current-galaxy-version-${ROLE,,}=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_OUTPUT}"
-            fi
-          done
-      - name: Check the versions in the main branch
+          CURRENT_GALAXY_VERSION=$(cat ${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          echo "Current Galaxy version: ${CURRENT_GALAXY_VERSION}"
+          if [ "$CURRENT_GALAXY_VERSION" != 'null' ]
+          then
+            echo "CURRENT_GALAXY_VERSION=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+            echo "current-galaxy-version=${CURRENT_GALAXY_VERSION}" >> "${GITHUB_OUTPUT}"
+          fi
+      - name: Check the version in the main branch
         if: ${{ inputs.compare-versions }}
         run: |
-          ROLES=$(find ${GITHUB_REPOSITORY} -maxdepth 1 -type d -name '[!.]*' ! -name 'ansible-galaxy')
-          for ROLE in $ROLES; do
-            ROLE=$(basename "$ROLE")
-            MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
-            echo "Galaxy version of the ${ROLE} collection in the main branch: ${MAIN_GALAXY_VERSION}"
-            echo "MAIN_GALAXY_VERSION_${ROLE^^}=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
-          done
-      - name: Validate the current version of the chain collection
-        if: ${{ ! env.CURRENT_GALAXY_VERSION_CHAIN }}
+          MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          echo "Galaxy version of ${{ inputs.collection-name }} collection in main branch: ${MAIN_GALAXY_VERSION}"
+          echo "MAIN_GALAXY_VERSION=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
+      - name: Validate the current version
+        if: ${{ ! env.CURRENT_GALAXY_VERSION }}
         uses: actions/github-script@v6
         with:
           script: |
-            core.setFailed('Your Galaxy version of the chain collection is absent or empty!')
-      - name: Validate the current version of the common collection
-        if: ${{ ! env.CURRENT_GALAXY_VERSION_COMMON }}
+            core.setFailed('Your Galaxy version of the ${{ inputs.collection-name }} collection is absent or empty!')
+      - name: Compare versions
+        if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION >= env.CURRENT_GALAXY_VERSION }}
         uses: actions/github-script@v6
         with:
           script: |
-            core.setFailed('Your Galaxy version of the common collection is absent or empty!')
-      - name: Compare versions for the chain collection
-        if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION_CHAIN >= env.CURRENT_GALAXY_VERSION_CHAIN }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Your Galaxy version of the chain collection is lower than the version in the main branch or equal. Please bump your version!')
-      - name: Compare versions for the common collection
-        if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION_COMMON >= env.CURRENT_GALAXY_VERSION_COMMON }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed('Your Galaxy version of the common collection is lower than the version in the main branch or equal. Please bump your version!')
+            core.setFailed('Your Galaxy version of the ${{ inputs.collection-name }} collection is lower than the version in the main branch or equal. Please bump your version!')

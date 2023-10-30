@@ -1,0 +1,57 @@
+name: release common collection
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'common/**'
+
+jobs:
+#  run-molecule-tests:
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        role-names: []
+#        molecule-drivers: [docker, lxd]
+#        # We test the latest version and minimum supported version
+#        ansible-versions: [5.0.1, 8.4.0]
+#    uses: ./.github/workflows/reusable-molecule.yml
+#    with:
+#      role-name: ${{ matrix.role-names }}
+#      collection-name: common
+#      molecule-driver: ${{ matrix.molecule-drivers }}
+#      ansible-version: ${{ matrix.ansible-versions }}
+  check-version:
+    uses: ./.github/workflows/reusable-check-version.yml
+    with:
+      compare-versions: false
+      collection-name: common
+  deploy-galaxy:
+#    needs: [run-molecule-tests, check-version]
+    needs: [check-version]
+    uses: ./.github/workflows/reusable-galaxy-deploy.yml
+    with:
+      collection-name: common
+    secrets:
+      api-token: ${{ secrets.GALAXY_API_KEY }}
+  create-git-tag:
+    runs-on: ubuntu-22.04
+    needs: [deploy-galaxy, check-version]
+    env:
+      CURRENT_GALAXY_VERSION: ${{ needs.check-version.outputs.current-galaxy-version }}
+    steps:
+      - name: Print tag version
+        run: |
+          echo "Tag version: ${CURRENT_GALAXY_VERSION}"
+      - name: Create Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const {CURRENT_GALAXY_VERSION} = process.env
+            github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${CURRENT_GALAXY_VERSION}-common`,
+                sha: context.sha
+            })

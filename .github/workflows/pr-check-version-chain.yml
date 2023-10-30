@@ -1,0 +1,12 @@
+name: check chain collection Galaxy version
+
+on:
+  pull_request:
+    paths:
+      - 'chain/**'
+
+jobs:
+  check-version:
+    uses: ./.github/workflows/reusable-check-version.yml
+    with:
+      collection-name: chain
