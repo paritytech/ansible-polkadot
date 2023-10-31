@@ -1,9 +1,11 @@
-name: main branch
+name: release chain collection
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'chain/**'
 
 jobs:
   run-molecule-tests:
@@ -17,15 +19,19 @@ jobs:
     uses: ./.github/workflows/reusable-molecule.yml
     with:
       role-name: ${{ matrix.role-names }}
+      collection-name: chain
       molecule-driver: ${{ matrix.molecule-drivers }}
       ansible-version: ${{ matrix.ansible-versions }}
   check-version:
     uses: ./.github/workflows/reusable-check-version.yml
     with:
       compare-versions: false
+      collection-name: chain
   deploy-galaxy:
     needs: [run-molecule-tests, check-version]
     uses: ./.github/workflows/reusable-galaxy-deploy.yml
+    with:
+      collection-name: chain
     secrets:
       api-token: ${{ secrets.GALAXY_API_KEY }}
   create-git-tag:
@@ -45,6 +51,6 @@ jobs:
             github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: `refs/tags/${CURRENT_GALAXY_VERSION}`,
+                ref: `refs/tags/${CURRENT_GALAXY_VERSION}-chain`,
                 sha: context.sha
             })

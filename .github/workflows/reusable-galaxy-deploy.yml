@@ -5,6 +5,9 @@ on:
         required: false
         type: string
         default: 8.4.0
+      collection-name:
+        required: true
+        type: string
     secrets:
       api-token:
         required: true
@@ -27,18 +30,14 @@ jobs:
       - name: Print Ansible version
         run: ansible --version
       - name: Build collection
-        run: ansible-galaxy collection build "${{ github.repository }}"
+        run: ansible-galaxy collection build "${{ github.repository }}/${{ inputs.collection-name }}"
       - name: Save API token
         run: echo '${{ secrets.api-token }}' > api-token
-      - name: Publish collections
+      - name: Publish collection
         run: |
-          ROLES=$(find ${GITHUB_REPOSITORY} -maxdepth 1 -type d -name '[!.]*' ! -name 'ansible-galaxy')
-          for ROLE in $ROLES; do
-            ROLE=$(basename "$ROLE")
-            GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
-            GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.name' | tr -d '\n')
-            VERSION=$(cat ${GITHUB_REPOSITORY}/${ROLE}/galaxy.yml | yq -r '.version' | tr -d '\n')
-            ansible-galaxy collection publish  ${GALAXY_NAMESPACE}-${GALAXY_NAME}-${VERSION}.tar.gz  --api-key="$(cat api-token | tr -d '\n')"
-          done
+          GALAXY_NAMESPACE=$(cat ${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.namespace' | tr -d '\n')
+          GALAXY_NAME=$(cat ${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.name' | tr -d '\n')
+          VERSION=$(cat ${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.version' | tr -d '\n')
+          ansible-galaxy collection publish  ${GALAXY_NAMESPACE}-${GALAXY_NAME}-${VERSION}.tar.gz  --api-key="$(cat api-token | tr -d '\n')"
       - name: Remove API token
         run: rm -v api-token

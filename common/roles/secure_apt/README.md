@@ -11,10 +11,10 @@ Requirements
 Example Playbook
 ----------------
 
-  - hosts: servers 
+  - hosts: servers  
     roles:
-      - paritytech.common.secure_apt
+      - paritytech.common.secure_apt  
     vars:
-      secure_apt_key: B53DC80D13EDEF05
+      secure_apt_key: B53DC80D13EDEF05  
       secure_apt_repositories:
         - https://packages.cloud.google.com/apt cloud-sdk-{{ ansible_distribution_release }} main
