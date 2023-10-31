@@ -44,7 +44,7 @@ jobs:
         if: ${{ inputs.compare-versions }}
         run: |
           MAIN_GALAXY_VERSION=$(cat main/${GITHUB_REPOSITORY}/${{ inputs.collection-name }}/galaxy.yml | yq -r '.version' | tr -d '\n')
-          echo "Galaxy version of ${{ inputs.collection-name }} collection in main branch: ${MAIN_GALAXY_VERSION}"
+          echo "Galaxy version in main branch: ${MAIN_GALAXY_VERSION}"
           echo "MAIN_GALAXY_VERSION=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
       - name: Validate the current version
         if: ${{ ! env.CURRENT_GALAXY_VERSION }}
