@@ -7,10 +7,6 @@
       name: gpg
       update_cache: yes
 
-  - name: Restore {{ item.part }} | GCP restoring | Add Google cloud apt GPG key
-    ansible.builtin.apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-
   - name: Restore {{ item.part }} | GCP restoring | Add cloud-sdk repo
     ansible.builtin.include_role:
       name: paritytech.common.secure_apt
