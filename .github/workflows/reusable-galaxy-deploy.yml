@@ -30,7 +30,7 @@ jobs:
       - name: Print Ansible version
         run: ansible --version
       - name: Build collection
-        run: ansible-galaxy collection build "${{ github.repository }}"
+        run: ansible-galaxy collection build "${{ github.repository }}/${{ inputs.collection-name }}"
       - name: Save API token
         run: echo '${{ secrets.api-token }}' > api-token
       - name: Publish collection
