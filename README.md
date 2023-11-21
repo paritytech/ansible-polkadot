@@ -1,4 +1,4 @@
-# Ansible Collection - paritytech.chain_operations
+# Ansible Collection - paritytech.chain
 
 ## Install Ansible collections
 
@@ -7,7 +7,15 @@ Create `requirements.yml` file in your playbook repository (or add to the existi
 collections:
   - name: https://github.com/paritytech/ansible-galaxy.git
     type: git
-    version: main
+    version: 1.6.2
+```
+
+or
+
+```yaml
+collections:
+  - name: paritytech.chain
+    version: 1.6.2
 ```
 
 If you want to install collections in the project space, you have to run:
@@ -24,4 +32,9 @@ ansible-galaxy collection install -f -r requirements.yml
 
 ## Roles
 
-Node role - [README](./roles/node/README.md) 
+* key_inject - [README](./roles/key_inject/README.md)
+* node - [README](./roles/node/README.md)
+* node_backup - [README](./roles/node_backup/README.md)
+* secure_apt - [README](./roles/secure_apt/README.md)
+* state_exporter - [README](./roles/state_exporter/README.md)
+* ws_health_exporter - [README](./roles/ws_health_exporter/README.md)
