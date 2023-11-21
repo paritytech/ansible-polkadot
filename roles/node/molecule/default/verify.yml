@@ -39,7 +39,6 @@
     vars:
       node_database_wipe: true
       node_parachain_database_wipe: true
-      node_enable_public_ip_detection: false
       node_start_service: false
 
   - name: Collect service facts 1

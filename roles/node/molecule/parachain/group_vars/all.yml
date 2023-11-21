@@ -10,7 +10,7 @@ node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_bin
 node_binary_signature: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain.asc
 node_app_name: "shell"
 node_prometheus_file_exporter_path: "/tmp/substrate.prom"
-#node_binary_deployment: false
+node_enable_public_ip_detection: false
 
 # Relaychain
 node_chain: "rococo"
