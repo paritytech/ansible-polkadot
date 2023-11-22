@@ -1,0 +1,11 @@
+[Unit]
+Description=websocat systemd service
+
+[Service]
+ExecStart={{ websocat_binary }} --oneshot -b ws-l:127.0.0.1:9944 tcp:127.0.0.1:9933
+Restart=always
+Wants=netcat.service
+After=netcat.service
+
+[Install]
+WantedBy=multi-user.target

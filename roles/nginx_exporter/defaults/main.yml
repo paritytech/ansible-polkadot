@@ -1,0 +1,6 @@
+---
+
+nginx_exporter_name: "nginx-exporter"
+nginx_exporter_user: "www-data"
+nginx_exporter_binary: "https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v0.10.0/nginx-prometheus-exporter_0.10.0_linux_amd64.tar.gz"
+nginx_metric_port: 8080

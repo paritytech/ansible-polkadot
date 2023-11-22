@@ -1,0 +1,44 @@
+---
+
+- name: Nginx exporter
+  tags: ["nginx-exporter"]
+  block:
+
+    - name: Nginx exporter | download exporter
+      ansible.builtin.unarchive:
+        src: "{{ nginx_exporter_binary }}"
+        dest: "{{ _nginx_exporter_file | dirname }}"
+        remote_src: yes
+        owner: "root"
+        group: "root"
+        mode: 0644
+      notify: Restart nginx-exporter
+
+    - name: Nginx exporter | change permissions of binary
+      ansible.builtin.file:
+        path: "{{ _nginx_exporter_file }}"
+        owner: "root"
+        group: "root"
+        mode: 0755
+        state: file
+      notify: Restart nginx-exporter
+
+    - name: Nginx exporter | copy exporter systemd unit file
+      ansible.builtin.template:
+        src: ".service.j2"
+        dest: "/etc/systemd/system/{{ nginx_exporter_name }}.service"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      notify: Restart nginx-exporter
+
+      # to avoid 2 restarts during the first deploy
+    - name: Nginx exporter | flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Nginx exporter | start exporter service
+      ansible.builtin.systemd:
+        name: "{{ nginx_exporter_name }}"
+        state: started
+        enabled: true
+        daemon_reload: true

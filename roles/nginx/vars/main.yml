@@ -1,0 +1,3 @@
+---
+
+_nginx_custom_certs_base_path: "/etc/nginx/tls-certs/"

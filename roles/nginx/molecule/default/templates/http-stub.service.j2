@@ -1,0 +1,10 @@
+[Unit]
+Description=websocat systemd service
+
+[Service]
+ExecStart=/usr/bin/python3 -m http.server 9933
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

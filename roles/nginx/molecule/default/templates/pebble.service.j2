@@ -1,0 +1,10 @@
+[Unit]
+Description=pebble systemd service
+
+[Service]
+Environment="PEBBLE_WFE_NONCEREJECT=20"
+ExecStart={{ pebble_binary }} -config {{ pebble_conf_dir }}pebble-config.json
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
