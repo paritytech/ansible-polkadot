@@ -1,9 +1,9 @@
-name: check PR (node_backup)
+name: check PR (nginx)
 
 on:
   pull_request:
     paths:
-      - roles/node_backup/**
+      - roles/nginx/**
       - .github/**
 
 jobs:
@@ -14,5 +14,5 @@ jobs:
         molecule-driver: [docker]
     uses: ./.github/workflows/reusable-molecule.yml
     with:
-      role-name: node
+      role-name: nginx
       molecule-driver: ${{ matrix.molecule-driver }}

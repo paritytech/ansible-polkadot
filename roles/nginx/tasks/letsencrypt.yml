@@ -1,0 +1,16 @@
+- name: nginx | letsencrypt | calculate list of letsencrypt domains
+  ansible.builtin.set_fact:
+    _nginx_letsencrypt_domains: "{{ nginx_sites | json_query(pattern) | map(attribute='domain') | unique }}"
+  vars:
+    pattern: "[?ssl_issuer==`letsencrypt`]"
+
+- name: nginx| letsencrypt | print list of letsencrypt domains
+  ansible.builtin.debug:
+    var: _nginx_letsencrypt_domains
+
+- name: nginx | letsencrypt | include issuing tasks of letsencrypt certs
+  ansible.builtin.include_tasks:
+    file: letsencrypt-loop.yml
+    apply:
+      tags: ['nginx', 'nginx-letsencrypt']
+  loop: "{{ _nginx_letsencrypt_domains }}"

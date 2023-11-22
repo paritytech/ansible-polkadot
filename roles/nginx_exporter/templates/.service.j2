@@ -1,0 +1,15 @@
+[Unit]
+Description=Nginx exporter systemd service
+After=nginx.service
+Requires=nginx.service
+PartOf=nginx.service
+
+[Service]
+ExecStart={{ _nginx_exporter_file }} -nginx.scrape-uri http://127.0.0.1:{{ nginx_metric_port }}/stub_status
+
+Restart=always
+User={{ nginx_exporter_user }}
+Group={{ nginx_exporter_user}}
+
+[Install]
+WantedBy=multi-user.target

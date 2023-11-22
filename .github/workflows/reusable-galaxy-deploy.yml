@@ -4,7 +4,7 @@ on:
       ansible-version:
         required: false
         type: string
-        default: 8.4.0
+        default: 9.0.1
     secrets:
       api-token:
         required: true
@@ -21,9 +21,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Setup Python modules
-        # PyYAML==5.3.1 fixes the 'The license_file parameter is deprecated, use license_files instead.' error
-        # the 5.4.1 version still has the issue
-        run: pip3 install --no-cache-dir PyYAML==5.3.1 ansible==${{ inputs.ansible-version }} yq
+        run: pip3 install --no-cache-dir ansible==${{ inputs.ansible-version }} yq
       - name: Print Ansible version
         run: ansible --version
       - name: Build collection

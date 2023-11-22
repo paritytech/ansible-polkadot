@@ -1,0 +1,9 @@
+---
+- name: converge
+  hosts: all
+  tasks:
+    - name: converge | deploy nginx without wipe
+      ansible.builtin.include_role:
+        name: "nginx"
+      vars:
+        nginx_remove_enable: false

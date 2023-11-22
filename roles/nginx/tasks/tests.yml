@@ -1,0 +1,31 @@
+---
+
+- name: nginx | tests | fail if the site isn't unique 1
+  ansible.builtin.set_fact:
+    _nginx_revised_sites: []
+
+- name: nginx | tests | fail if the site isn't unique 2
+  ansible.builtin.set_fact:
+    _nginx_revised_sites: "{{ _nginx_revised_sites + [ 'template: ' + item.template +
+                                                       ' domain: ' + item.domain ] }}"
+  loop: "{{ nginx_sites }}"
+
+- name: nginx | tests | fail if the site isn't unique 3
+  ansible.builtin.fail:
+    msg: "{{ item }}. A pair of 'template' and 'domain' variables must be unique for each item of the 'nginx_sites' variable "
+  loop: "{{ _nginx_revised_sites | sort }}"
+  loop_control:
+    extended: yes
+  when: not ansible_loop.last and (item == ansible_loop.nextitem)
+
+- name: nginx | tests | check the ssl_issuer variable
+  ansible.builtin.fail:
+    msg: "The 'ssl_issuer' variable must be defined, it can contain only 'manual', 'letsencrypt' values!"
+  loop: "{{ nginx_sites }}"
+  when: item.ssl_issuer is not defined or item.ssl_issuer not in ['manual', 'letsencrypt']
+
+- name: nginx | tests | check the ssl_manual_cert_file variable
+  ansible.builtin.fail:
+    msg: "The 'ssl_manual_cert_file' variable must be defined, if 'ssl_issuer' == 'manual'"
+  loop: "{{ nginx_sites }}"
+  when: item.ssl_issuer == 'manual' and item.ssl_manual_cert_file is not defined
