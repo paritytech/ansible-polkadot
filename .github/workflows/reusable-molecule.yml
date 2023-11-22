@@ -54,7 +54,7 @@ jobs:
 #          set -e
 #          yamllint .
 #          ansible-lint
-        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
+#        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
       - name: Run molecule tests
         if: ${{ env.MOLECULE_IS_PRESENT }}
         run: molecule test --all
