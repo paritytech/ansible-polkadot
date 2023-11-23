@@ -81,13 +81,6 @@
         tags: [ 'node', 'node-restore-chain' ]
     when: item.restoring_type == 'tar'
 
-  - name: Restore {{ item.part }} | GCP restoring
-    ansible.builtin.include_tasks:
-      file: 802-restore-chain-gcp.yml
-      apply:
-        tags: [ 'node', 'node-restore-chain' ]
-    when:  item.restoring_type == 'gcp'
-
   - name: Restore {{ item.part }} | HTTP restoring
     ansible.builtin.include_tasks:
       file: 803-restore-chain-http.yml
