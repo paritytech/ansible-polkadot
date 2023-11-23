@@ -52,27 +52,13 @@
 
 - name: Test | Check node_chain_backup_restoring_type
   ansible.builtin.fail:
-    msg: "The 'node_chain_backup_restoring_type' variable can contain only 'gcp', 'tar' or 'none' values!"
-  when: node_chain_backup_restoring_type not in ["http", "gcp", "tar", "none"]
+    msg: "The 'node_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!"
+  when: node_chain_backup_restoring_type not in ["http", "tar", "none"]
 
 - name: Test | Check node_parachain_chain_backup_restoring_type
   ansible.builtin.fail:
-    msg: "The 'node_parachain_chain_backup_restoring_type' variable can contain only 'gcp', 'tar' or 'none' values!"
-  when: node_parachain_chain_backup_restoring_type not in ["http", "gcp", "tar", "none"]
-
-- name: Test | Check gcp backup
-  ansible.builtin.fail:
-    msg: "If you use GCP backups for the node that uses chain: {{ node_chain }}, 
-    pruning state: {{ (node_pruning > 0) }}, 
-    you have to set the node_chain_backup_gcp_bucket variable or the node_chain_backup_gcp_path"
-  when: node_chain_backup_restoring_type == 'gcp' and node_chain_backup_gcp_bucket == '' and node_chain_backup_gcp_path == ''
-
-- name: Test | Check parachain gcp backup
-  ansible.builtin.fail:
-    msg: "If you use GCP backups for the node that uses parachain: {{ node_parachain_chain }}, 
-    pruning state: {{ (node_parachain_pruning > 0) }}, 
-    you have to set the node_parachain_chain_backup_gcp_bucket variable or the node_parachain_chain_backup_gcp_path variable"
-  when: node_parachain_role != '' and node_parachain_chain_backup_restoring_type == 'gcp' and node_parachain_chain_backup_gcp_bucket == '' and node_parachain_chain_backup_gcp_path == ''
+    msg: "The 'node_parachain_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!"
+  when: node_parachain_chain_backup_restoring_type not in ["http", "tar", "none"]
 
 - name: Test | Check node_chain_backup_url
   ansible.builtin.fail:

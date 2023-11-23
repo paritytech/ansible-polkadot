@@ -7,7 +7,7 @@ Create `requirements.yml` file in your playbook repository (or add to the existi
 collections:
   - name: https://github.com/paritytech/ansible-galaxy.git
     type: git
-    version: 1.6.2
+    version: 1.8.0
 ```
 
 or
@@ -15,7 +15,7 @@ or
 ```yaml
 collections:
   - name: paritytech.chain
-    version: 1.6.2
+    version: 1.8.0
 ```
 
 If you want to install collections in the project space, you have to run:
@@ -38,3 +38,5 @@ ansible-galaxy collection install -f -r requirements.yml
 * secure_apt - [README](./roles/secure_apt/README.md)
 * state_exporter - [README](./roles/state_exporter/README.md)
 * ws_health_exporter - [README](./roles/ws_health_exporter/README.md)
+* nginx - [README](./roles/nginx/README.md)
+* nginx_exporter - [README](./roles/nginx_exporter/README.md)
