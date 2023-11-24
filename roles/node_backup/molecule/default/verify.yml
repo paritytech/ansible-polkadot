@@ -3,25 +3,25 @@
   hosts: all
   gather_facts: false
   tasks:
-  - name: wait until ~10 blocks created
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:9933"
-      method: "POST"
-      body_format: "json"
-      body:
-        id: 1
-        jsonrpc: "2.0"
-        method: "chain_getHeader"
-        params: []
-      return_content: true
-    register: _node_backup_register_header
-    until: _node_backup_register_header.json.result.number | int(base=16) > 10
-    retries: 10
-    delay: 10
+    - name: wait until ~10 blocks created
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9933
+        method: POST
+        body_format: json
+        body:
+          id: 1
+          jsonrpc: "2.0"
+          method: chain_getHeader
+          params: []
+        return_content: true
+      register: _node_backup_register_header
+      until: _node_backup_register_header.json.result.number | int(base=16) > 10
+      retries: 10
+      delay: 10
 
-  - name: Print current block
-    ansible.builtin.debug:
-      var: _node_backup_register_header.json.result.number |  int(base=16)
+    - name: Print current block
+      ansible.builtin.debug:
+        var: _node_backup_register_header.json.result.number |  int(base=16)
 #   # todo add tests
 #
 ## a) upload to gcp

@@ -7,7 +7,7 @@
 # It's used for naming of systemd unit files, binary files, key files etc.
 node_app_name: "{{ node_chain }}"
 # A node will be ran with permissions of this user
-node_user: "polkadot"
+node_user: polkadot
 # if it's empty, the '(home directory of node_user)/.local/share/polkadot' directory will be used
 node_data_root_path: ""
 
@@ -52,7 +52,7 @@ node_start_service: true
 # File name for prometheus node-exporter textfile collector
 # Example:  /var/lib/prometheus/node-exporter/substrate.prom
 node_prometheus_file_exporter_path: ""
-node_prometheus_file_exporter_event: "node_role"
+node_prometheus_file_exporter_event: node_role
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -61,7 +61,7 @@ node_prometheus_file_exporter_event: "node_role"
 # It's used for telemetry
 node_public_name: "{{ inventory_hostname }}"
 # It's role of node. It can be "validator", "boot", "full", "rpc".
-node_role: "full"
+node_role: full
 # You have to specify it in your playbook or inventory!
 node_chain: ""
 # Set up name of a chainspec template file from "templates" folder or https url to file.
@@ -124,7 +124,7 @@ node_chain_backup_tmp_restore_path: ""
 
 ## HTTP backups
 # link to HTTP backups
-node_chain_backup_http_base_url: "https://snapshots.polkadot.io"
+node_chain_backup_http_base_url: https://snapshots.polkadot.io
 # full link to a HTTP backup
 node_chain_backup_http_url: ""
 # If you don't have pre-installed rclone the role can install it
@@ -138,9 +138,10 @@ node_chain_backup_url: ""
 ### Loging and telemetry
 node_telemetry_enable: true
 # If you set an empty value, it will use the default telemetry server
-node_telemetry_url: "wss:/telemetry.polkadot.io/submit/ 1"
+node_telemetry_url: wss:/telemetry.polkadot.io/submit/ 1
 node_log_trace_enable: false
-node_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+node_log_trace_config: 
+  babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
 # custom labels to be added to journald logs. e.g. "chain=kusama team=kusama-statemint"
 node_syslog_labels: ""
 
@@ -172,7 +173,6 @@ node_parachain_wasm_runtime: ""
 ### Experimental Feature
 # Remote Relay Chain via RPC
 node_parachain_relay_chain_rpc_urls: []
-
 ### Keys
 ## p2p key
 # If it's empty, the node will generate default key file
@@ -233,9 +233,10 @@ node_parachain_chain_backup_url: ""
 ### Loging and telemetry
 node_parachain_telemetry_enable: true
 # If you set an empty value, it will use the default telemetry server
-node_parachain_telemetry_url: "wss://telemetry.polkadot.io/submit/ 1"
+node_parachain_telemetry_url: wss://telemetry.polkadot.io/submit/ 1
 node_parachain_log_trace_enable: false
-node_parachain_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+node_parachain_log_trace_config: 
+  babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
 
 ### Role flow
 # Group of variables to manage the flow of the role
@@ -246,10 +247,10 @@ node_parachain_database_wipe: false
 #####################################################################################
 
 node_memory_profiler_enable: false
-node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.11.0/bytehound-x86_64-unknown-linux-gnu.tgz"
+node_memory_profiler_binary: https://github.com/koute/bytehound/releases/download/0.11.0/bytehound-x86_64-unknown-linux-gnu.tgz
 # if it's empty, the '(home directory of node_user)/logs' directory will be used
 node_memory_profiler_log_path: ""
-node_memory_profiler_log_level: "info"
+node_memory_profiler_log_level: info
 
 # This value (in milliseconds) decides which allocations are considered temporary.
 #

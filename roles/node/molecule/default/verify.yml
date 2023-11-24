@@ -3,102 +3,99 @@
   hosts: all
   gather_facts: false
   tasks:
-  - name: Collect service facts
-    ansible.builtin.service_facts:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
 
-  - name: Print service facts
-    ansible.builtin.debug:
-      var: ansible_facts.services['polkadot.service']
+    - name: Print service facts
+      ansible.builtin.debug:
+        var: ansible_facts.services['polkadot.service']
 
-  - name: check service
-    ansible.builtin.assert:
-      that: ansible_facts.services['polkadot.service'].state == 'running'
+    - name: check service
+      ansible.builtin.assert:
+        that: ansible_facts.services['polkadot.service'].state == 'running'
 
-  - name: Get system_health
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _system_health_result.status is defined and _system_health_result.status == 200
-    retries: 3
-    delay: 10
-    register: _system_health_result
+    - name: Get system_health
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_health, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _system_health_result.status is defined and _system_health_result.status == 200
+      retries: 3
+      delay: 10
+      register: _system_health_result
 
-  - name: Print system_health
-    ansible.builtin.debug:
-      msg: "{{ _system_health_result.json }}"
+    - name: Print system_health
+      ansible.builtin.debug:
+        msg: "{{ _system_health_result.json }}"
 
-  - name: Re-deploy node with additional parameters
-    ansible.builtin.include_role:
-      name: "node"
-    vars:
-      node_database_wipe: true
-      node_parachain_database_wipe: true
-      node_start_service: false
+    - name: Re-deploy node with additional parameters
+      ansible.builtin.include_role:
+        name: node
+      vars:
+        node_database_wipe: true
+        node_parachain_database_wipe: true
+        node_start_service: false
 
-  - name: Collect service facts 1
-    ansible.builtin.service_facts:
+    - name: Collect service facts 1
+      ansible.builtin.service_facts:
 
-  - name: Print service facts 1
-    ansible.builtin.debug:
-      var: ansible_facts.services['polkadot.service']
+    - name: Print service facts 1
+      ansible.builtin.debug:
+        var: ansible_facts.services['polkadot.service']
 
-  - name: Check service 1
-    ansible.builtin.assert:
-      that: ansible_facts.services['polkadot.service'].state == 'stopped'
+    - name: Check service 1
+      ansible.builtin.assert:
+        that: ansible_facts.services['polkadot.service'].state == 'stopped'
 
-  - name: Start {{ node_app_name }} service
-    ansible.builtin.systemd:
-      name: "{{ node_app_name }}"
-      state: "started"
+    - name: Start {{ node_app_name }} service
+      ansible.builtin.systemd:
+        name: "{{ node_app_name }}"
+        state: started
 
-  - name: Collect service facts 2
-    ansible.builtin.service_facts:
+    - name: Collect service facts 2
+      ansible.builtin.service_facts:
 
-  - name: Print service facts 2
-    ansible.builtin.debug:
-      var: ansible_facts.services['polkadot.service']
+    - name: Print service facts 2
+      ansible.builtin.debug:
+        var: ansible_facts.services['polkadot.service']
 
-  - name: Check service 2
-    ansible.builtin.assert:
-      that: ansible_facts.services['polkadot.service'].state == 'running'
+    - name: Check service 2
+      ansible.builtin.assert:
+        that: ansible_facts.services['polkadot.service'].state == 'running'
 
-  - name: Get system_health
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _system_health_result.status is defined and _system_health_result.status == 200
-    retries: 3
-    delay: 10
-    register: _system_health_result
+    - name: Get system_health
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_health, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _system_health_result.status is defined and _system_health_result.status == 200
+      retries: 3
+      delay: 10
+      register: _system_health_result
 
-  - name: Print system_health
-    ansible.builtin.debug:
-      msg: "{{ _system_health_result.json }}"
+    - name: Print system_health
+      ansible.builtin.debug:
+        msg: "{{ _system_health_result.json }}"
 
-  - name: Get system_syncState
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_syncState", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    register: _system_syncstate_result
+    - name: Get system_syncState
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_syncState, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      register: _system_syncstate_result
 
-  - name: Print system_syncState
-    ansible.builtin.debug:
-      msg: "{{ _system_syncstate_result.json }}"
+    - name: Print system_syncState
+      ansible.builtin.debug:
+        msg: "{{ _system_syncstate_result.json }}"

@@ -1,3 +1,4 @@
+---
 ## Molecule
 ansible_user: root
 
@@ -8,16 +9,16 @@ node_rpc_port: 9944
 node_parachain_rpc_port: 9954
 node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain
 node_binary_signature: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain.asc
-node_app_name: "shell"
-node_prometheus_file_exporter_path: "/tmp/substrate.prom"
+node_app_name: shell
+node_prometheus_file_exporter_path: /tmp/substrate.prom
 node_enable_public_ip_detection: false
 
 # Relaychain
-node_chain: "rococo"
-node_chainspec: "https://paritytech.github.io/chainspecs/rococo/relaychain/chainspec.json"
-node_chain_backup_restoring_type: "none"
+node_chain: rococo
+node_chainspec: https://paritytech.github.io/chainspecs/rococo/relaychain/chainspec.json
+node_chain_backup_restoring_type: none
 
 # Parachain
-node_parachain_chain: "shell"
-node_parachain_chain_backup_restoring_type: "none"
-node_parachain_role: "collator"
+node_parachain_chain: shell
+node_parachain_chain_backup_restoring_type: none
+node_parachain_role: collator

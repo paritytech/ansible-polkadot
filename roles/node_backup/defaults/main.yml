@@ -11,10 +11,10 @@ node_backup_max_concurrent_requests: 50
 node_backup_schedule:
   - "*-*-* 01:00:00"
 
-node_backup_user: "polkadot"
+node_backup_user: polkadot
 
-node_backup_base_path: "/opt/node_backup"
-node_backup_tmp_path: "/tmp"
+node_backup_base_path: /opt/node_backup
+node_backup_tmp_path: /tmp
 
 # It wipes a local cash of the node-bakcup expoter.
 # It's useful if you rename or remove some backups from the 'node_backup_targets' variable

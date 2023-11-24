@@ -1,3 +1,4 @@
+---
 - name: prepare
   hosts: all
   gather_facts: false
@@ -6,17 +7,17 @@
       ansible.builtin.raw: apt -y update && apt install -y python3
       changed_when: false
   vars:
-    websocat_dist_binary: "https://github.com/vi/websocat/releases/download/v1.9.0/websocat_linux64"
-    websocat_binary: "/usr/local/bin/websocat"
-    pebble_dist_binary: "https://github.com/letsencrypt/pebble/releases/download/v2.3.1/pebble_linux-amd64"
-    pebble_binary: "/usr/local/bin/pebble"
-    pebble_conf_dir: "/usr/local/etc/pebble/"
+    websocat_dist_binary: https://github.com/vi/websocat/releases/download/v1.9.0/websocat_linux64
+    websocat_binary: /usr/local/bin/websocat
+    pebble_dist_binary: https://github.com/letsencrypt/pebble/releases/download/v2.3.1/pebble_linux-amd64
+    pebble_binary: /usr/local/bin/pebble
+    pebble_conf_dir: /usr/local/etc/pebble/
   tasks:
     - name: prepare | install packeges
       ansible.builtin.apt:
         name: "{{ packeges }}"
         state: present
-        update_cache: no
+        update_cache: false
       vars:
         packeges:
           - ca-certificates
@@ -24,8 +25,8 @@
           - netcat-openbsd
     - name: prepare | build hosts file
       ansible.builtin.lineinfile:
-        dest: "/etc/hosts"
-        line: "127.0.0.1 {{ item.domain }}"
+        dest: /etc/hosts
+        line: 127.0.0.1 {{ item.domain }}
         state: present
       loop: "{{ nginx_sites }}"
       when: molecule_yml.driver.name == 'lxd'
@@ -34,9 +35,9 @@
       ansible.builtin.get_url:
         url: "{{ websocat_dist_binary }}"
         dest: "{{ websocat_binary }}"
-        mode: 0755
-        owner: "root"
-        group: "root"
+        mode: "0755"
+        owner: root
+        group: root
     # pebble provides mock for ACME (letsencrypt)
     - name: prepare | create pebble config directory
       ansible.builtin.file:
@@ -49,9 +50,9 @@
       ansible.builtin.get_url:
         url: "{{ pebble_dist_binary }}"
         dest: "{{ pebble_binary }}"
-        mode: 0755
-        owner: "root"
-        group: "root"
+        mode: "0755"
+        owner: root
+        group: root
     - name: prepare | copy pebble config files
       ansible.builtin.copy:
         src: "{{ item.src }}"
@@ -60,8 +61,8 @@
         group: root
         mode: "0644"
       loop:
-        - {src: "pebble/cert.pem", dst: "{{ pebble_conf_dir }}"} # fake 127.0.0.1 certificate
-        - {src: "pebble/key.pem", dst: "{{ pebble_conf_dir }}"} # fake 127.0.0.1 certificate
+        - { src: pebble/cert.pem, dst: "{{ pebble_conf_dir }}" } # fake 127.0.0.1 certificate
+        - { src: pebble/key.pem, dst: "{{ pebble_conf_dir }}" } # fake 127.0.0.1 certificate
     - name: prepare | copy config templates
       ansible.builtin.template:
         src: "{{ item.src }}"
@@ -70,10 +71,10 @@
         group: root
         mode: "0644"
       loop:
-        - {src: "pebble.service.j2", dst: "/etc/systemd/system/pebble.service"}
-        - {src: "pebble-config.json.j2", dst: "{{ pebble_conf_dir }}pebble-config.json"}
-        - {src: "websocat.service.j2", dst: "/etc/systemd/system/websocat.service"}
-        - {src: "http-stub.service.j2", dst: "/etc/systemd/system/http-stub.service"}
+        - { src: pebble.service.j2, dst: /etc/systemd/system/pebble.service }
+        - { src: pebble-config.json.j2, dst: "{{ pebble_conf_dir }}pebble-config.json" }
+        - { src: websocat.service.j2, dst: /etc/systemd/system/websocat.service }
+        - { src: http-stub.service.j2, dst: /etc/systemd/system/http-stub.service }
     - name: prepare | run services
       ansible.builtin.systemd:
         name: "{{ item }}"
@@ -81,15 +82,15 @@
         enabled: true
         daemon_reload: true
       loop:
-        - "pebble.service"
-        - "http-stub.service"
-        - "websocat.service"
+        - pebble.service
+        - http-stub.service
+        - websocat.service
     - name: prepare | collect service facts
       ansible.builtin.service_facts:
     - name: prepare | check services
       ansible.builtin.assert:
         that: ansible_facts.services[item].state == 'running'
       loop:
-        - "pebble.service"
-        - "http-stub.service"
-        - "websocat.service"
+        - pebble.service
+        - http-stub.service
+        - websocat.service

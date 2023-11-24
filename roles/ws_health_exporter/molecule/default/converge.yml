@@ -3,6 +3,6 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: "Include ws_health_exporter"
+    - name: Include ws_health_exporter
       ansible.builtin.include_role:
-        name: "ws_health_exporter"
+        name: ws_health_exporter

@@ -1,25 +1,24 @@
 ---
-
 - name: Test | Check node_binary
   ansible.builtin.fail:
-    msg: "The 'node_binary' variable can't be empty!"
+    msg: The 'node_binary' variable can't be empty!
   when: node_binary == ''
 
 - name: Test | Check if node_binary_signature is a URL
   ansible.builtin.fail:
-    msg: "The 'node_binary_signature' variable must be a URL!"
+    msg: The 'node_binary_signature' variable must be a URL!
   when:
     - node_binary_signature != ''
     - not node_binary_signature.startswith('http')
 
 - name: Test | Check node_app_name
   ansible.builtin.fail:
-    msg: "The 'node_app_name' variable can't be empty!"
+    msg: The 'node_app_name' variable can't be empty!
   when: node_app_name == ''
 
 - name: Test | Check node_chain
   ansible.builtin.fail:
-    msg: "The 'node_chain' variable can't be empty!"
+    msg: The 'node_chain' variable can't be empty!
   when:
     - node_chain == ''
     - node_chainspec == ''
@@ -27,47 +26,47 @@
 
 - name: Test | Check node_parachain_chain
   ansible.builtin.fail:
-    msg: "The 'node_parachain_chain' variable can't be empty!"
+    msg: The 'node_parachain_chain' variable can't be empty!
   when: node_parachain_role != '' and node_parachain_chain == '' and node_parachain_chainspec == ''
 
 - name: Test | Check node_role
   ansible.builtin.fail:
-    msg: "The 'node_role' variable can contain only 'validator', 'boot', 'full' or 'rpc' values!"
+    msg: The 'node_role' variable can contain only 'validator', 'boot', 'full' or 'rpc' values!
   when: node_role == '' or node_role not in ["validator", "boot", "rpc", "full"]
 
 - name: Test | Check node_parachain_role
   ansible.builtin.fail:
-    msg: "The 'node_parachain_role' variable can contain only 'collator', 'validator' 'rpc' or 'full' values!"
+    msg: The 'node_parachain_role' variable can contain only 'collator', 'validator' 'rpc' or 'full' values!
   when: node_parachain_role != '' and node_parachain_role not in ["collator", "rpc", "full", "validator"]
 
 - name: Test | Check correctness of role variables
   ansible.builtin.fail:
-    msg: "You use the wrong combination of 'node_role' and 'node_parachain_role' variables!"
+    msg: You use the wrong combination of 'node_role' and 'node_parachain_role' variables!
   when: node_role == 'validator' and node_parachain_role == 'collator'
 
 - name: Test | Check node_app_name
   ansible.builtin.fail:
-    msg: "The 'node_app_name' variable can contain only '0-9a-zA-Z_-' symbols!"
+    msg: The 'node_app_name' variable can contain only '0-9a-zA-Z_-' symbols!
   when: node_app_name is regex('[^0-9a-zA-Z_-]+')
 
 - name: Test | Check node_chain_backup_restoring_type
   ansible.builtin.fail:
-    msg: "The 'node_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!"
+    msg: The 'node_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!
   when: node_chain_backup_restoring_type not in ["http", "tar", "none"]
 
 - name: Test | Check node_parachain_chain_backup_restoring_type
   ansible.builtin.fail:
-    msg: "The 'node_parachain_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!"
+    msg: The 'node_parachain_chain_backup_restoring_type' variable can contain only 'http', 'tar' or 'none' values!
   when: node_parachain_chain_backup_restoring_type not in ["http", "tar", "none"]
 
 - name: Test | Check node_chain_backup_url
   ansible.builtin.fail:
-    msg: "If you use tar backups, you have to set the node_chain_backup_url variable"
+    msg: If you use tar backups, you have to set the node_chain_backup_url variable
   when: node_chain_backup_restoring_type == 'tar' and node_chain_backup_url == ''
 
 - name: Test | Check node_parachain_chain_backup_url
   ansible.builtin.fail:
-    msg: "If you use tar backups, you have to set the node_parachain_chain_backup_url variable"
+    msg: If you use tar backups, you have to set the node_parachain_chain_backup_url variable
   when: node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url == ''
 
 - name: Test | Check number of executions in play

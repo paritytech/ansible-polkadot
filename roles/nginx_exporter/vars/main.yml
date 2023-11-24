@@ -1,1 +1,2 @@
-_nginx_exporter_file: "/usr/local/bin/nginx-prometheus-exporter"
+---
+_nginx_exporter_file: /usr/local/bin/nginx-prometheus-exporter

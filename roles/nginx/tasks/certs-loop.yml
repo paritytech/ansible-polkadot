@@ -1,12 +1,9 @@
 ---
-
-- block:
-
-  - name: nginx | certs | copy {{ item }}
-    ansible.builtin.copy:
-      src:  "{{ item }}"
-      dest: "{{ _nginx_custom_certs_base_path }}{{ item }}"
-      owner: root
-      group: root
-      mode: "0600"
-    notify: reload nginx config
+- name: nginx | certs | copy {{ item }}
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ _nginx_custom_certs_base_path }}{{ item }}"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: reload nginx config

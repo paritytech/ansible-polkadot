@@ -5,16 +5,16 @@
   tasks:
     - name: verify | deploy nginx with wipe
       ansible.builtin.include_role:
-        name: "nginx"
+        name: nginx
       vars:
         nginx_remove_enable: true
     - name: verify | check https RPC endpoints
       ansible.builtin.uri:
-        url: "https://{{ item.domain }}"
-        validate_certs: no
+        url: https://{{ item.domain }}
+        validate_certs: false
       loop: "{{ nginx_sites }}"
       when: item.template == 'site-rpc.j2'
     - name: verify | check wss RPC endpoints
-      ansible.builtin.command: "websocat --insecure -E wss:///{{ item.domain }}"
-      changed_when: False
+      ansible.builtin.command: websocat --insecure -E wss:///{{ item.domain }}
+      changed_when: false
       loop: "{{ nginx_sites }}"

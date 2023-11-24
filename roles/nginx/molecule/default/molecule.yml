@@ -9,26 +9,26 @@ platforms:
     source:
       alias: debian/bullseye/amd64
     # DOCKER
-    image: "paritytech/debian11:latest"
+    image: paritytech/debian11:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     # need this for systemctl to work in Docker
     privileged: true
     # to pull image  from docker hub uncomment this
     pre_build_image: true
     etc_hosts:
-      'a.rpc.lan': '127.0.0.1'
-      'b.rpc.lan': '127.0.0.1'
-      'c.rpc.lan': '127.0.0.1'
-      'd.rpc.lan': '127.0.0.1'
+      a.rpc.lan: 127.0.0.1
+      b.rpc.lan: 127.0.0.1
+      c.rpc.lan: 127.0.0.1
+      d.rpc.lan: 127.0.0.1
 
 provisioner:
   name: ansible
   options:
-    D: True
+    D: true
   config_options:
     defaults:
       callbacks_enabled: timer
 verifier:
   name: ansible
   options:
-    D: True
+    D: true

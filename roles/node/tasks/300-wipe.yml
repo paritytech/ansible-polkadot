@@ -1,5 +1,4 @@
 ---
-
 - name: Wipe | Stop service
   ansible.builtin.systemd:
     name: "{{ node_app_name }}"
@@ -13,12 +12,12 @@
     state: absent
   vars:
     # remove whole `chains` folder
-    _node_chain_id: ''
+    _node_chain_id: ""
   notify: restart service {{ node_handler_id }}
   retries: 5
   register: _node_wipe_results
   until: not _node_wipe_results.failed
-  delay: "60"
+  delay: 60
   when: node_database_wipe | bool
 
 - name: Wipe | Delete parachain DB
@@ -26,12 +25,12 @@
     path: "{{ _node_parachain_data_chain_path }}"
     state: absent
   vars:
-    _node_parachain_chain_id: ''
+    _node_parachain_chain_id: ""
   notify: restart service {{ node_handler_id }}
   retries: 5
   register: _node_wipe_results
   until: not _node_wipe_results.failed
-  delay: "60"
+  delay: 60
   when: node_parachain_role != '' and (node_parachain_database_wipe | bool)
 
 # we need it to update information about free space after the wipe

@@ -3,100 +3,96 @@
   hosts: all
   gather_facts: false
   tasks:
-  - name: re-deploy node with wipe
-    ansible.builtin.include_role:
-      name: "node"
-    vars:
-      node_database_wipe: true
-      node_parachain_database_wipe: true
+    - name: re-deploy node with wipe
+      ansible.builtin.include_role:
+        name: node
+      vars:
+        node_database_wipe: true
+        node_parachain_database_wipe: true
 
-  - name: Collect service facts
-    ansible.builtin.service_facts:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
 
-  - name: Print service facts
-    ansible.builtin.debug:
-      var: ansible_facts.services['shell.service']
+    - name: Print service facts
+      ansible.builtin.debug:
+        var: ansible_facts.services['shell.service']
 
-  - name: check service
-    ansible.builtin.assert:
-      that: ansible_facts.services['shell.service'].state == 'running'
+    - name: check service
+      ansible.builtin.assert:
+        that: ansible_facts.services['shell.service'].state == 'running'
 
-  - name: Get relaychain system_health
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _relaychain_system_health_result.status is defined and _relaychain_system_health_result.status == 200
-    retries: 3
-    delay: 10
-    register: _relaychain_system_health_result
+    - name: Get relaychain system_health
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_health, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _relaychain_system_health_result.status is defined and _relaychain_system_health_result.status == 200
+      retries: 3
+      delay: 10
+      register: _relaychain_system_health_result
 
-  - name: Get parachain system_health
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_parachain_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_health", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _parachain_system_health_result.status is defined and _parachain_system_health_result.status == 200
-    retries: 3
-    delay: 10
-    register: _parachain_system_health_result
+    - name: Get parachain system_health
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_parachain_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_health, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _parachain_system_health_result.status is defined and _parachain_system_health_result.status == 200
+      retries: 3
+      delay: 10
+      register: _parachain_system_health_result
 
-  - name: Print system_health
-    ansible.builtin.debug:
-      msg:
-        - "Relaychain: {{ _relaychain_system_health_result.json }}"
-        - "Parachain: {{ _parachain_system_health_result.json }}"
+    - name: Print system_health
+      ansible.builtin.debug:
+        msg:
+          - "Relaychain: {{ _relaychain_system_health_result.json }}"
+          - "Parachain: {{ _parachain_system_health_result.json }}"
 
-  - name: relay chain syncing
-    ansible.builtin.assert:
-      that: _relaychain_system_health_result.json['result']['isSyncing']
+    - name: relay chain syncing
+      ansible.builtin.assert:
+        that: _relaychain_system_health_result.json['result']['isSyncing']
 
-  - name: parachain is not syncing (it is not onboarded)
-    ansible.builtin.assert:
-      that: not _parachain_system_health_result.json['result']['isSyncing']
+    - name: parachain is not syncing (it is not onboarded)
+      ansible.builtin.assert:
+        that: not _parachain_system_health_result.json['result']['isSyncing']
 
-  - name: Get relaychain system_syncState
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_syncState", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _relaychain_system_syncstate_result.status is defined and _relaychain_system_syncstate_result.status == 200
-    retries: 3
-    delay: 10
-    register: _relaychain_system_syncstate_result
+    - name: Get relaychain system_syncState
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_syncState, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _relaychain_system_syncstate_result.status is defined and _relaychain_system_syncstate_result.status == 200
+      retries: 3
+      delay: 10
+      register: _relaychain_system_syncstate_result
 
-  - name: Get parachain system_syncState
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ node_parachain_rpc_port }}"
-      method: POST
-      body:
-        {"id":1, "jsonrpc":"2.0", "method":"system_syncState", "params":[]}
-      body_format: json
-      headers:
-        Content-Type: 'application/json'
-      use_proxy: false
-    until: _parachain_system_syncstate_result.status is defined and _parachain_system_syncstate_result.status == 200
-    retries: 3
-    delay: 10
-    register: _parachain_system_syncstate_result
+    - name: Get parachain system_syncState
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ node_parachain_rpc_port }}
+        method: POST
+        body: { id: 1, jsonrpc: "2.0", method: system_syncState, params: [] }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        use_proxy: false
+      until: _parachain_system_syncstate_result.status is defined and _parachain_system_syncstate_result.status == 200
+      retries: 3
+      delay: 10
+      register: _parachain_system_syncstate_result
 
-  - name: Print system_syncState
-    ansible.builtin.debug:
-      msg:
-        - "Relaychain: {{ _relaychain_system_syncstate_result.json }}"
-        - "Parachain: {{ _parachain_system_syncstate_result.json }}"
+    - name: Print system_syncState
+      ansible.builtin.debug:
+        msg:
+          - "Relaychain: {{ _relaychain_system_syncstate_result.json }}"
+          - "Parachain: {{ _parachain_system_syncstate_result.json }}"

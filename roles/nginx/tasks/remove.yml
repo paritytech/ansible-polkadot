@@ -1,15 +1,14 @@
 ---
-
 - name: nginx | remove | stop nginx
   ansible.builtin.systemd:
-    name: "nginx"
+    name: nginx
     state: stopped
 
 - name: nginx | remove | remove packeges
   ansible.builtin.apt:
     name: "{{ packeges }}"
     state: absent
-    purge: yes
+    purge: true
   vars:
     packeges:
       - nginx
@@ -22,7 +21,7 @@
     name: "{{ item }}"
     state: absent
   loop:
-    - "/var/www/letsencrypt"
-    - "/etc/letsencrypt"
-    - "/etc/nginx"
-    - "/etc/systemd/system/nginx.service.d"
+    - /var/www/letsencrypt
+    - /etc/letsencrypt
+    - /etc/nginx
+    - /etc/systemd/system/nginx.service.d

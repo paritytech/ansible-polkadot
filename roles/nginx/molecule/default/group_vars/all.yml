@@ -1,3 +1,4 @@
+---
 ## Molecule
 ansible_user: root
 
@@ -5,26 +6,26 @@ nginx_letsencrypt_mock: true
 nginx_dhparam_size: 1024
 nginx_sites:
   - template: site-rpc.j2
-    domain: "a.rpc.lan"
+    domain: a.rpc.lan
     ssl_issuer: letsencrypt
     params:
       rpc_port: 9933
       rpc_ws_port: 9944
   - template: site-rpc.j2
-    domain: "b.rpc.lan"
+    domain: b.rpc.lan
     ssl_issuer: manual
-    ssl_manual_cert_file: "test1.pem"
+    ssl_manual_cert_file: test1.pem
     params:
       rpc_port: 9933
       rpc_ws_port: 9944
   - template: site-connect.j2
-    domain: "c.rpc.lan"
+    domain: c.rpc.lan
     ssl_issuer: letsencrypt
     params:
       connect_port: 9944
   - template: site-connect.j2
-    domain: "d.rpc.lan"
+    domain: d.rpc.lan
     ssl_issuer: manual
-    ssl_manual_cert_file: "test2.pem"
+    ssl_manual_cert_file: test2.pem
     params:
       connect_port: 9944

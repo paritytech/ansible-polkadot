@@ -5,4 +5,3 @@ skip_list:
   - experimental # all rules tagged as experimental
   - "306" # Ignore not setting pipefail - required for sh shell
   - name[template] # Style enforcement
-  - ignore-errors

@@ -1,35 +1,36 @@
+---
 ## Molecule
 ansible_user: root
 
 ## prepare.yml
 #node_legacy_rpc_flags: false
-node_binary: "https://github.com/paritytech/polkadot/releases/download/v0.9.42/polkadot"
-node_chain: "rococo-local"
-node_data_root_path: "/opt/{{node_app_name}}"
-node_chain_backup_restoring_type: "none"
+node_binary: https://github.com/paritytech/polkadot/releases/download/v0.9.42/polkadot
+node_chain: rococo-local
+node_data_root_path: /opt/{{ node_app_name }}
+node_chain_backup_restoring_type: none
 node_pruning: 256
 # node_binary_deployment: false
 
 # node_backup
 _gcp_bucket: test-blockstore-backups
-node_backup_user: "parity"
-node_backup_r2_access_key_id: "abc"
-node_backup_r2_secret_access_key: "cba"
-node_backup_r2_api_url: "https://a.b"
+node_backup_user: parity
+node_backup_r2_access_key_id: abc
+node_backup_r2_secret_access_key: cba
+node_backup_r2_api_url: https://a.b
 node_backup_targets:
- - service_name: rococo-alice-rocksdb-prune
-   local_path: /opt/rococo-alice-rocksdb-prune/chains/rococo_local_testnet/db
-   rpc_port: 9933
-   bucket_name: "{{ _gcp_bucket }}"
-   type: "gcp-native"
- - service_name: rococo-bob-paritydb-prune
-   local_path: /opt/rococo-bob-paritydb-prune/chains/rococo_local_testnet/paritydb
-   rpc_port: 9934
-   bucket_name: "{{ _gcp_bucket }}"
-   type: "gcp-rclone"
- - service_name: rococo-bob-paritydb-prune
-   local_path: /opt/rococo-bob-paritydb-prune/chains/rococo_local_testnet/paritydb
-   rpc_port: 9934
-   bucket_name: "{{ _gcp_bucket }}"
-   type: "r2-rclone"
-   bucket_domain: "c.d"
+  - service_name: rococo-alice-rocksdb-prune
+    local_path: /opt/rococo-alice-rocksdb-prune/chains/rococo_local_testnet/db
+    rpc_port: 9933
+    bucket_name: "{{ _gcp_bucket }}"
+    type: gcp-native
+  - service_name: rococo-bob-paritydb-prune
+    local_path: /opt/rococo-bob-paritydb-prune/chains/rococo_local_testnet/paritydb
+    rpc_port: 9934
+    bucket_name: "{{ _gcp_bucket }}"
+    type: gcp-rclone
+  - service_name: rococo-bob-paritydb-prune
+    local_path: /opt/rococo-bob-paritydb-prune/chains/rococo_local_testnet/paritydb
+    rpc_port: 9934
+    bucket_name: "{{ _gcp_bucket }}"
+    type: r2-rclone
+    bucket_domain: c.d

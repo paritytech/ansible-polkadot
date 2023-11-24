@@ -1,10 +1,9 @@
 ---
-
 - name: Restart | Restart service
   ansible.builtin.systemd:
     name: "{{ node_app_name }}"
     state: restarted
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   notify: health check {{ node_handler_id }}
   ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"

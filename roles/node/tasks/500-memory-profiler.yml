@@ -1,10 +1,9 @@
 ---
-
 - name: Memory profiler | Create directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
   loop:
@@ -14,7 +13,7 @@
   ansible.builtin.unarchive:
     src: "{{ node_memory_profiler_binary }}"
     dest: "{{ _node_binary_path }}"
-    remote_src: yes
+    remote_src: true
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-    mode: 0644
+    mode: "0644"

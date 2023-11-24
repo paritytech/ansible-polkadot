@@ -1,5 +1,4 @@
 ---
-
 - name: node-backup | requirements | install packages
   ansible.builtin.package:
     name: "{{ packages }}"
@@ -7,42 +6,40 @@
     update_cache: true
   vars:
     packages:
-      - "curl"
-      - "jq"
-      - "expect"
-      - "moreutils"
-      - "python3-venv"
-      - "python3-setuptools"
-
+      - curl
+      - jq
+      - expect
+      - moreutils
+      - python3-venv
+      - python3-setuptools
 
 - name: node-backup | requirements | install Python modules
   ansible.builtin.pip:
     name:
-      - "prometheus-client==0.17.0"
+      - prometheus-client==0.17.0
     virtualenv: "{{ _node_backup_venv_path }}"
-    virtualenv_command: "python3 -m venv"
+    virtualenv_command: python3 -m venv
   notify: restart node-backup exporter
 
 - name: node-backup | requirements | configure rclone
-  block:
-
-  - name: node-backup | requirements | install rclone
-    ansible.builtin.apt:
-      deb: "{{ _node_backup_rclone_deb }}"
-
-  - name: node backup | requirements | create rclone config directory
-    ansible.builtin.file:
-      path: "/root/.config/rclone"
-      state: directory
-      mode: 0700
-      owner: "root"
-      group: "root"
-
-  - name: node-backup | requirements | copy R2 config
-    ansible.builtin.template:
-      src: "rclone/rclone.conf.j2"
-      dest: "/root/.config/rclone/rclone.conf"
-      owner: "root"
-      group: "root"
-      mode: 0600
   when: node_backup_targets | json_query('[].type') | intersect(_node_backup_rclone_types) | length > 0
+  block:
+    - name: node-backup | requirements | install rclone
+      ansible.builtin.apt:
+        deb: "{{ _node_backup_rclone_deb }}"
+
+    - name: node backup | requirements | create rclone config directory
+      ansible.builtin.file:
+        path: /root/.config/rclone
+        state: directory
+        mode: "0700"
+        owner: root
+        group: root
+
+    - name: node-backup | requirements | copy R2 config
+      ansible.builtin.template:
+        src: rclone/rclone.conf.j2
+        dest: /root/.config/rclone/rclone.conf
+        owner: root
+        group: root
+        mode: "0600"

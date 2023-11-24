@@ -3,32 +3,32 @@
   hosts: all
   gather_facts: true
   tasks:
-  - name: Collect service facts
-    ansible.builtin.service_facts:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
 
-  - name: print service facts
-    ansible.builtin.debug:
-      var: ansible_facts.services[item+'.service']
-    loop:
-      - "rococo-alice"
-      - "rococo-bob"
+    - name: print service facts
+      ansible.builtin.debug:
+        var: ansible_facts.services[item+'.service']
+      loop:
+        - rococo-alice
+        - rococo-bob
 
-  - name: check service
-    ansible.builtin.assert:
-      that: ansible_facts.services[item+'.service'].state == 'running'
-    loop:
-      - "rococo-alice"
-      - "rococo-bob"
+    - name: check service
+      ansible.builtin.assert:
+        that: ansible_facts.services[item+'.service'].state == 'running'
+      loop:
+        - rococo-alice
+        - rococo-bob
 
-  - name: check ws health exporter
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ ws_health_exporter_port }}/health/readiness"
-      use_proxy: false
-    register: _ws_health_exporter
-    until: _ws_health_exporter.status == 200
-    retries: 10 # 10 * 5 seconds = 50 sec
-    delay: 5
+    - name: check ws health exporter
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ ws_health_exporter_port }}/health/readiness
+        use_proxy: false
+      register: _ws_health_exporter
+      until: _ws_health_exporter.status == 200
+      retries: 10 # 10 * 5 seconds = 50 sec
+      delay: 5
 
-  - name: Print service facts
-    ansible.builtin.debug:
-      var: _ws_health_exporter
+    - name: Print service facts
+      ansible.builtin.debug:
+        var: _ws_health_exporter
