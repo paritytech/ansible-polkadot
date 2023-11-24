@@ -1,0 +1,18 @@
+name: check PR (secure_apt)
+
+on:
+  pull_request:
+    paths:
+      - roles/secure_apt/**
+      - .github/**
+
+jobs:
+  run-molecule-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        molecule-driver: [docker]
+    uses: ./.github/workflows/reusable-molecule.yml
+    with:
+      role-name: secure_apt
+      molecule-driver: ${{ matrix.molecule-driver }}
