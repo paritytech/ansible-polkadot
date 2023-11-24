@@ -48,13 +48,12 @@ jobs:
         if: ${{ env.MOLECULE_IS_PRESENT && inputs.molecule-driver == 'lxd' }}
         run: |
           pip3 install --no-cache-dir molecule-lxd
-# enable and fix issues as separate PR
-#      - name: Run lint
-#        run: |
-#          set -e
-#          yamllint .
-#          ansible-lint
-#        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
+      - name: Run lint
+        run: |
+          set -e
+          yamllint .
+          ansible-lint
+        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
       - name: Run molecule tests
         if: ${{ env.MOLECULE_IS_PRESENT }}
         run: molecule test --all
