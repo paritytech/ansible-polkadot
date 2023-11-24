@@ -15,4 +15,4 @@
   ansible.builtin.file:
     path: "{{ item.chain_path }}/{{ item.db_folder }}"
     state: directory
-    mode: "0655"
+    mode: "0755"

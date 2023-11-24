@@ -106,7 +106,7 @@
         owner: "{{ node_user }}"
         group: "{{ node_user }}"
         remote_src: true
-        mode: "0655"
+        mode: "0755"
 
     - name: Restore {{ item.part }} | HTTP restoring | Delete temporary folder
       ansible.builtin.file:
