@@ -1,17 +1,18 @@
 ---
-  - name: Restore {{ item.part }} | Stop the service
-    ansible.builtin.systemd:
-      name: "{{ node_app_name }}"
-      state: stopped
-    notify: restart service {{ node_handler_id }}
-    ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
+- name: Restore {{ item.part }} | Stop the service
+  ansible.builtin.systemd:
+    name: "{{ node_app_name }}"
+    state: stopped
+  notify: restart service {{ node_handler_id }}
+  ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
 
-  - name: Restore {{ item.part }} | Delete db folder
-    ansible.builtin.file:
-      path: "{{ item.chain_path }}/{{ item.db_folder }}"
-      state: absent
+- name: Restore {{ item.part }} | Delete db folder
+  ansible.builtin.file:
+    path: "{{ item.chain_path }}/{{ item.db_folder }}"
+    state: absent
 
-  - name: Restore {{ item.part }} | Recreate db folder
-    ansible.builtin.file:
-      path: "{{ item.chain_path }}/{{ item.db_folder }}"
-      state: directory
+- name: Restore {{ item.part }} | Recreate db folder
+  ansible.builtin.file:
+    path: "{{ item.chain_path }}/{{ item.db_folder }}"
+    state: directory
+    mode: "0755"

@@ -1,5 +1,4 @@
 ---
-
 - name: Post tasks | Remove temporary directory
   ansible.builtin.file:
     path: "{{ _node_temp_dir.path }}"

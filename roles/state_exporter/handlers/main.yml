@@ -1,5 +1,4 @@
 ---
-
 - name: restart state-exporter
   ansible.builtin.systemd:
     name: "{{ state_exporter_name }}"

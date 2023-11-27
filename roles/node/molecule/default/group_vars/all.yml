@@ -1,3 +1,4 @@
+---
 ## Molecule
 ansible_user: root
 
@@ -11,13 +12,13 @@ node_binary: https://github.com/paritytech/polkadot-sdk/releases/download/polkad
 node_binary_signature: https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot.asc
 node_pruning: 256
 ode_paritydb_enable: true
-node_chain_backup_restoring_type: "none"
-node_parachain_chain_backup_restoring_type: "none"
+node_chain_backup_restoring_type: none
+node_parachain_chain_backup_restoring_type: none
 # This private key is only for modulecule tests
 # Note: don't modify this key either, because the last character (which is invisible here) is special
 # and without it, subkey won't be able to work with it
 node_p2p_private_key: a4964e8e979c29fcdd79403db8c374cae91857e69a13162f7664a6529bd66093
-node_prometheus_file_exporter_path: "/tmp/substrate.prom"
-node_data_root_path: "/opt/polkadot-root"
-node_memory_profiler_log_path: "/opt/polkadot-root-logs"
+node_prometheus_file_exporter_path: /tmp/substrate.prom
+node_data_root_path: /opt/polkadot-root
+node_memory_profiler_log_path: /opt/polkadot-root-logs
 node_enable_public_ip_detection: false

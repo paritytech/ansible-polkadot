@@ -1,3 +1,4 @@
+---
 - name: Prepare
   hosts: all
   gather_facts: false
@@ -6,27 +7,27 @@
       ansible.builtin.raw: apt -y update && apt install -y python3
       changed_when: false
   tasks:
-    - name: "Include node alice"
+    - name: Include node alice
       # use include role to skip ansible-lint
       ansible.builtin.include_role:
         name: node
       vars:
         node_app_name: rococo-alice
-        node_data_root_path: "/opt/{{ node_app_name }}"
+        node_data_root_path: /opt/{{ node_app_name }}
         node_custom_options:
-          - "--alice"
+          - --alice
         node_p2p_port: "30333"
         node_prometheus_port: "9615"
         node_rpc_port: "9933"
         node_rpc_ws_port: "9944"
-    - name: "Include node bob"
+    - name: Include node bob
       ansible.builtin.include_role:
         name: node
       vars:
         node_app_name: rococo-bob
-        node_data_root_path: "/opt/{{ node_app_name }}"
+        node_data_root_path: /opt/{{ node_app_name }}
         node_custom_options:
-          - "--bob"
+          - --bob
         node_p2p_port: "30334"
         node_prometheus_port: "9616"
         node_rpc_port: "9934"

@@ -1,5 +1,4 @@
 ---
-
 - name: Prepare | Create user
   ansible.builtin.user:
     name: "{{ node_user }}"
@@ -17,7 +16,7 @@
 
 - name: Prepare | Check '_node_user_home_path' variable 2
   ansible.builtin.fail:
-    msg: "The user home dir {{ _node_user_home_path }} must be created!"
+    msg: The user home dir {{ _node_user_home_path }} must be created!
   when: _node_user_home_path_stat.stat.isdir is not defined or not _node_user_home_path_stat.stat.isdir
   ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
 

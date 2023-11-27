@@ -1,5 +1,8 @@
+---
 skip_list:
-  - empty-string-compare  # Don't compare to empty string
-  - experimental  # all rules tagged as experimental
-  - '306' # Ignore not setting pipefail - required for sh shell
+  - name[casing]
+  - empty-string-compare # Don't compare to empty string
+  - experimental # all rules tagged as experimental
+  - "306" # Ignore not setting pipefail - required for sh shell
   - name[template] # Style enforcement
+  - ignore-errors

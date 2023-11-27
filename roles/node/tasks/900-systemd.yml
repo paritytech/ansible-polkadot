@@ -1,5 +1,4 @@
 ---
-
 - name: Systemd | Get public IP
   community.general.ipify_facts:
     timeout: 30
@@ -13,7 +12,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
   loop:
@@ -21,22 +20,22 @@
 
 - name: Systemd | Copy {{ node_app_name }} systemd unit file
   ansible.builtin.template:
-    src: "node.service.j2"
+    src: node.service.j2
     dest: "{{ _node_unit_file }}"
-    owner: "root"
-    group: "root"
+    owner: root
+    group: root
     mode: "0600"
   notify: restart service {{ node_handler_id }}
 
 - name: Systemd | Copy {{ node_app_name }} environment variable file
   ansible.builtin.template:
-    src: "env.j2"
+    src: env.j2
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-    dest: "/etc/default/polkadot-{{ node_app_name }}"
-    mode: 0644
+    dest: /etc/default/polkadot-{{ node_app_name }}
+    mode: "0644"
   notify: restart service {{ node_handler_id }}
-  tags: ['node-memory-profiler']
+  tags: [node-memory-profiler]
 
 # to avoid 2 restarts during the first deploy
 - name: Systemd | Flush handlers
@@ -46,7 +45,7 @@
   ansible.builtin.systemd:
     name: "{{ node_app_name }}"
     state: "{{ 'started' if (node_start_service | bool) else 'stopped' }}"
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   notify: health check {{ node_handler_id }}
   ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"

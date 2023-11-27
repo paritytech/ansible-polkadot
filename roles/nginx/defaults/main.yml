@@ -1,11 +1,11 @@
-nginx_letsencrypt_email: "devops-team@parity.io"
+---
+nginx_letsencrypt_email: devops-team@parity.io
 nginx_letsencrypt_mock: false
 nginx_dhparam_size: 4096
 nginx_worker_rlimit_nofile: 30000
 # requests per second
 nginx_max_request_rate: 2
 nginx_burst_request_rate: 5
-
 
 # print extended data about clients
 nginx_log_extended_enable: false

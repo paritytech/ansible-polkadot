@@ -4,6 +4,6 @@
   tasks:
     - name: converge | deploy nginx without wipe
       ansible.builtin.include_role:
-        name: "nginx"
+        name: nginx
       vars:
         nginx_remove_enable: false

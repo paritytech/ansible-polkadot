@@ -3,13 +3,13 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: "parachain"
+    - name: parachain
       ansible.builtin.include_role:
-        name: "node"
+        name: node
       vars:
-        node_app_name: "parachain-shell"
-        node_parachain_chain: "shell"
-        node_parachain_role: "collator"
-        node_parachain_chain_backup_restoring_type: "none"
-        node_parachain_relay_chain_rpc_urls: ["ws://127.0.0.1:9944"]
-        node_prometheus_file_exporter_path: "/tmp/substrate-pc.prom"
+        node_app_name: parachain-shell
+        node_parachain_chain: shell
+        node_parachain_role: collator
+        node_parachain_chain_backup_restoring_type: none
+        node_parachain_relay_chain_rpc_urls: [ws://127.0.0.1:9944]
+        node_prometheus_file_exporter_path: /tmp/substrate-pc.prom

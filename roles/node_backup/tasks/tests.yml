@@ -1,26 +1,19 @@
 ---
-
 - name: node-backup | test | check R2 configuration
   ansible.builtin.fail:
-    msg: "If the R2 backups are used, 'node_backup_r2_access_key_id', 'node_backup_r2_secret_access_key' and 'node_backup_r2_api_url' variables have to be specified"
-  when: node_backup_targets | json_query('[].type') | intersect(_node_backup_r2_types) | length > 0 and
-          ( node_backup_r2_access_key_id == '' or
-            node_backup_r2_secret_access_key == '' or
-            node_backup_r2_api_url == ''
-          )
+    msg: If the R2 backups are used, 'node_backup_r2_access_key_id', 'node_backup_r2_secret_access_key' and 'node_backup_r2_api_url' variables have to be specified
+  when: node_backup_targets | json_query('[].type') | intersect(_node_backup_r2_types) | length > 0 and ( node_backup_r2_access_key_id == '' or node_backup_r2_secret_access_key
+    == '' or node_backup_r2_api_url == '' )
 
 - name: node-backup | test | check variables
   ansible.builtin.fail:
     msg: "'service_name', 'rpc_port', 'type' and 'bucket_name' fields have to be specified for each item in 'node_backup_targets'"
-  when: item.service_name == '' or
-        item.rpc_port == '' or
-        item.type == '' or
-        item.bucket_name == ''
+  when: item.service_name == '' or item.rpc_port == '' or item.type == '' or item.bucket_name == ''
   loop: "{{ node_backup_targets }}"
 
 - name: node-backup | test | check R2 backups
   ansible.builtin.fail:
-    msg: "the 'bucket_domain' field has to be specified for R2 backups"
+    msg: the 'bucket_domain' field has to be specified for R2 backups
   when: item.type in _node_backup_r2_types and item.bucket_domain == ''
   loop: "{{ node_backup_targets }}"
 

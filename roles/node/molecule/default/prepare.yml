@@ -1,3 +1,4 @@
+---
 - name: Prepare
   hosts: all
   gather_facts: false
@@ -9,5 +10,5 @@
       ansible.builtin.apt:
         name:
           - gpg
-        update_cache: no
+        update_cache: false
       changed_when: false

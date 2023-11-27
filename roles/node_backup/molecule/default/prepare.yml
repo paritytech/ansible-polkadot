@@ -1,3 +1,4 @@
+---
 - name: Prepare
   hosts: all
   gather_facts: false
@@ -9,23 +10,23 @@
       ansible.builtin.user:
         name: parity
   tasks:
-    - name: "rococo-alice local"
+    - name: rococo-alice local
       ansible.builtin.include_role:
         name: parity.chain.node
       vars:
         node_rpc_port: 9933
-        node_app_name: "rococo-alice-rocksdb-prune"
+        node_app_name: rococo-alice-rocksdb-prune
         node_custom_options:
-          - "--alice"
-    - name: "rococo-bob local"
+          - --alice
+    - name: rococo-bob local
       ansible.builtin.include_role:
         name: parity.chain.node
       vars:
         node_rpc_port: 9934
         node_paritydb_enable: true
-        node_app_name: "rococo-bob-paritydb-prune"
+        node_app_name: rococo-bob-paritydb-prune
         node_custom_options:
-          - "--bob"
+          - --bob
     - name: Pretend we are in gcp | Install cron, gnupg
       ansible.builtin.package:
         name:

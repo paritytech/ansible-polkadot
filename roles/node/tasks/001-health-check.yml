@@ -1,12 +1,11 @@
 ---
-
 - name: Health check | Collect service facts
   ansible.builtin.service_facts:
-  tags: ['node-restore-chain']
+  tags: [node-restore-chain]
 
 - name: Health check | Fail is service is not running
   ansible.builtin.fail:
-    msg: "Service {{ node_app_name }} is not running"
+    msg: Service {{ node_app_name }} is not running
   when:
     - ansible_facts.services[node_app_name+'.service'] is defined
     - ansible_facts.services[node_app_name+'.service'].state != 'running'
@@ -17,55 +16,52 @@
     var: ansible_facts.services[node_app_name+'.service'].state
 
 - name: Health Check | Block
+  when: ansible_facts.services[node_app_name+'.service'] is defined and ansible_facts.services[node_app_name+'.service'].state not in ['stopped', 'inactive']
   block:
+    - name: Health check | Run health check
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ (node_parachain_relay_chain_rpc_urls | length != 0) | ternary(node_parachain_rpc_port, node_rpc_port) }}
+        method: POST
+        body_format: json
+        body:
+          id: 1
+          jsonrpc: "2.0"
+          method: system_health
+          params: []
+        return_content: true
+        use_proxy: false
+      register: _node_health_check_register
+      until: _node_health_check_register.status is defined and _node_health_check_register.status == 200
+      retries: 12
+      delay: 10
+      check_mode: false
+      changed_when: false
 
-  - name: Health check | Run health check
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ ( node_parachain_relay_chain_rpc_urls | length != 0 ) | ternary(node_parachain_rpc_port, node_rpc_port) }}"
-      method: "POST"
-      body_format: "json"
-      body:
-        id: 1
-        jsonrpc: "2.0"
-        method: "system_health"
-        params: []
-      return_content: yes
-      use_proxy: false
-    register: _node_health_check_register
-    until: _node_health_check_register.status is defined and _node_health_check_register.status == 200
-    retries: 12
-    delay: 10
-    check_mode: false
-    changed_when: false
+    - name: Health check | Print health check result
+      ansible.builtin.debug:
+        msg: |
+          {{ node_app_name }} is healthy
+          peers: {{ _node_health_check_register.json.result.peers }}
 
-  - name: Health check | Print health check result
-    ansible.builtin.debug:
-      msg: |
-        {{ node_app_name }} is healthy
-        peers: {{ _node_health_check_register.json.result.peers }}
+    - name: Health check | Check the current version using API
+      ansible.builtin.uri:
+        url: http://127.0.0.1:{{ (node_parachain_relay_chain_rpc_urls | length != 0) | ternary(node_parachain_rpc_port, node_rpc_port) }}
+        method: POST
+        body_format: json
+        body:
+          id: 1
+          jsonrpc: "2.0"
+          method: system_version
+          params: []
+        return_content: true
+        use_proxy: false
+      register: _node_version_check_register
+      until: _node_version_check_register.status is defined and _node_version_check_register.status == 200
+      retries: 2
+      delay: 10
+      check_mode: false
+      changed_when: false
 
-  - name: Health check | Check the current version using API
-    ansible.builtin.uri:
-      url: "http://127.0.0.1:{{ ( node_parachain_relay_chain_rpc_urls | length != 0 ) | ternary(node_parachain_rpc_port, node_rpc_port) }}"
-      method: "POST"
-      body_format: "json"
-      body:
-        id: 1
-        jsonrpc: "2.0"
-        method: "system_version"
-        params: [ ]
-      return_content: yes
-      use_proxy: false
-    register: _node_version_check_register
-    until: _node_version_check_register.status is defined and _node_version_check_register.status == 200
-    retries: 2
-    delay: 10
-    check_mode: false
-    changed_when: false
-
-  - name: Health check | Print the current version according to API
-    ansible.builtin.debug:
-      msg: "The current version is {{ _node_version_check_register.json.result }}"
-
-  when: ansible_facts.services[node_app_name+'.service'] is defined and
-        ansible_facts.services[node_app_name+'.service'].state not in ['stopped', 'inactive']
+    - name: Health check | Print the current version according to API
+      ansible.builtin.debug:
+        msg: The current version is {{ _node_version_check_register.json.result }}
