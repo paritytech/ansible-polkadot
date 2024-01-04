@@ -1,7 +1,7 @@
 ---
 - name: Check session key | Generate session
   ansible.builtin.set_fact:
-    key_inject_session_key: "0x{% for key in key_inject_relay_chain_key_list %}{{ (key.priv_key | parity.chain.subkey_inspect(scheme=(key.scheme | default('sr25519')))).publicKey.replace('0x',
+    key_inject_session_key: "0x{% for key in key_inject_relay_chain_key_list %}{{ (key.priv_key | paritytech.chain.subkey_inspect(scheme=(key.scheme | default('sr25519')))).publicKey.replace('0x',
       '') }}{% endfor %}"
 
 - name: Check session key | Run rpc
