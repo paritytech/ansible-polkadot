@@ -4,7 +4,7 @@
   block:
     - name: Inject | Setting {{ item.type }} pub keys
       ansible.builtin.set_fact:
-        key_inject_pub_key: "{{ (item.priv_key | parity.chain.subkey_inspect(scheme=(item.scheme | default('sr25519')))).publicKey }}"
+        key_inject_pub_key: "{{ (item.priv_key | paritytech.chain.subkey_inspect(scheme=(item.scheme | default('sr25519')))).publicKey }}"
 
     - name: Inject | Check {{ item.type }} key
       ansible.builtin.uri:

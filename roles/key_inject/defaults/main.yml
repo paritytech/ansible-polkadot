@@ -23,6 +23,9 @@ key_inject_relay_chain_rpc_port: 9944
 #    priv_key: "SECRET SEED"
 #  - type: "audi"
 #    priv_key: "SECRET SEED"
+#  - scheme: "ecdsa"
+#    type: "beef
+#    priv_key: "SECRET SEED"
 
 # if set to true, public part of from key_inject_relay_chain_key_list will be combined
 # and verified that it is present in keystore
