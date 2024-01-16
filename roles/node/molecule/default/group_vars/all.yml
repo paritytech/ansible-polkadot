@@ -11,7 +11,7 @@ node_rpc_port: 9944
 node_binary: https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot
 node_binary_signature: https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot.asc
 node_pruning: 256
-ode_paritydb_enable: true
+node_paritydb_enable: true
 node_chain_backup_restoring_type: none
 node_parachain_chain_backup_restoring_type: none
 # This private key is only for modulecule tests
