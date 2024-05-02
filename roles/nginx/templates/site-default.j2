@@ -1,0 +1,20 @@
+server {
+    listen 80 default_server;
+    server_name _;
+
+    location /.well-known/acme-challenge {
+        root /var/www/letsencrypt;
+        try_files $uri $uri/ =404;
+    }
+
+    location / {
+        rewrite ^ https://$host$request_uri? permanent;
+    }
+}
+
+server {
+    listen 8080;
+    location = /stub_status {
+      stub_status;
+  }
+}

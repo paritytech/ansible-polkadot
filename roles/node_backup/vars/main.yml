@@ -1,0 +1,17 @@
+---
+
+_node_backup_scripts_path: "{{ node_backup_base_path }}/scripts"
+_node_backup_log_path: "{{ node_backup_base_path }}/logs"
+_node_backup_venv_path: "{{ node_backup_base_path }}/venv"
+_node_backup_exporter_path: "{{ node_backup_base_path }}/exporter"
+_node_backup_exporter_file: "{{ _node_backup_exporter_path }}/exporter.py"
+_node_backup_exporter_cache_file: "{{ _node_backup_exporter_path }}/exporter.cache"
+_node_backup_rclone_deb: https://downloads.rclone.org/v1.63.1/rclone-v1.63.1-linux-amd64.deb
+
+_node_backup_r2_types: [r2-rclone]
+_node_backup_gcp_types: [gcp-native, gcp-rclone]
+_node_backup_rclone_types: [gcp-rclone, r2-rclone]
+_node_backup_storages:
+  r2-rclone: r2
+  gcp-rclone: gcp
+  gcp-native: gcp

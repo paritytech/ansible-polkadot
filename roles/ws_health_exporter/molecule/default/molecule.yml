@@ -1,0 +1,29 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: ${DRIVER:-docker}
+platforms:
+  - name: molecule-instance-ws-health-exporter
+    # LXD
+    source:
+      alias: debian/bullseye/amd64
+    # DOCKER
+    image: paritytech/debian11:latest
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    # need this for systemctl to work in Docker
+    privileged: true
+    # to pull image  from docker hub uncomment this
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  options:
+    D: true
+  config_options:
+    defaults:
+      callbacks_enabled: timer
+verifier:
+  name: ansible
+  options:
+    D: true

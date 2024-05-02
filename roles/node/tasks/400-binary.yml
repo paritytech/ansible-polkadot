@@ -1,47 +1,63 @@
 ---
+- name: Binary | Set variables
+  ansible.builtin.set_fact:
+    _node_binaries: "{{ [{'url': node_binary, 'signature_url': node_binary_signature, 'dst': _node_main_binary_file_name}] }}"
+    _node_temp_binary_path: "{{ _node_temp_dir.path }}/bin"
 
-- name: Binary | Create bin directory
+- name: Binary | Check current binary path exists
+  ansible.builtin.stat:
+    path: "{{ _node_binary_path }}"
+  register: _node_binary_path_stat
+
+- name: Binary | Create temp bin directory
   ansible.builtin.file:
-    path: "{{ _node_binary_file | dirname }}"
+    path: "{{ _node_temp_binary_path }}"
     state: directory
     mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-
-- name: Binary | Create temporary directory
-  ansible.builtin.tempfile:
-    state: directory
-    suffix: polkadot_temp_binary
-  register: _node_temp_dir
   check_mode: false
   changed_when: false
 
-- name: Binary | Setup _node_temp_binary variable
+- name: Binary | Add prepare_worker to the '_node_binaries' variable
   ansible.builtin.set_fact:
-    _node_temp_binary_file: "{{ _node_temp_dir.path }}/{{ node_app_name }}"
+    _node_binaries: "{{ _node_binaries + [{'url': node_prepare_worker_binary, 'signature_url': node_prepare_worker_binary_signature, 'dst': 'polkadot-prepare-worker'}]
+      }}"
+  when: node_prepare_worker_binary != ''
 
-- name: Binary | Download binary
+- name: Binary | Add execute_worker to the '_node_binaries' variable
+  ansible.builtin.set_fact:
+    _node_binaries: "{{ _node_binaries + [{'url': node_execute_worker_binary, 'signature_url': node_execute_worker_binary_signature, 'dst': 'polkadot-execute-worker'}]
+      }}"
+  when: node_execute_worker_binary != ''
+
+- name: Binary | Download binaries to temp bin directory
   ansible.builtin.get_url:
-    url: "{{ node_binary }}"
-    dest: "{{ _node_temp_binary_file }}"
-    mode: 0755
-    owner: "root"
-    group: "root"
+    url: "{{ item.url }}"
+    dest: "{{ _node_temp_binary_path }}/{{ item.dst }}"
+    mode: "0755"
+    owner: root
+    group: root
     timeout: 30
     headers:
       PRIVATE-TOKEN: "{{ node_binary_download_private_token }}"
+  loop: "{{ _node_binaries }}"
   check_mode: false
   changed_when: false
 
 - name: Binary | GPG signature verification
-  block:
+  when: node_binary_signature != '' or node_prepare_worker_binary_signature != '' or node_execute_worker_binary_signature != ''
 
-    - name: Binary | Download GPG signature
+  block:
+    - name: Binary | Download GPG signatures for binaries
       ansible.builtin.get_url:
-        url: "{{ node_binary_signature }}"
-        dest: "{{ _node_temp_dir.path }}/{{ node_app_name }}.asc"
+        url: "{{ item.signature_url }}"
+        dest: "{{ _node_temp_binary_path }}/{{ item.dst }}.asc"
+        mode: "0644"
       check_mode: false
       changed_when: false
+      loop: "{{ _node_binaries }}"
+      when: item.signature_url != ''
 
     - name: Binary | Import release GPG public key
       ansible.builtin.command: |
@@ -51,31 +67,32 @@
       failed_when: _node_keyout.rc != 0
       check_mode: false
 
-    - name: Binary | Verify GPG signature
+    - name: Binary | Verify GPG signatures for binaries
       ansible.builtin.command: |
-        {{ _node_binary_gpg_binary }} --verify {{ _node_temp_dir.path }}/{{ node_app_name }}.asc
+        {{ _node_binary_gpg_binary }} --verify {{ _node_temp_binary_path }}/{{ item.dst }}.asc
       register: _node_verifyout
       check_mode: false
       changed_when: false
+      loop: "{{ _node_binaries }}"
+      when: item.signature_url != ''
       failed_when: _node_verifyout.rc != 0
 
-  when: node_binary_signature != ''
-
 - name: Binary | Check new version
-  ansible.builtin.command: "{{ _node_temp_binary_file }} --version"
+  ansible.builtin.command: "{{ _node_temp_binary_path }}/{{ _node_main_binary_file_name }} --version"
   register: _node_new_version
   check_mode: false
   changed_when: false
 
 - name: Binary | Check current binary file exists
   ansible.builtin.stat:
-    path: "{{ _node_binary_file }}"
+    path: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }}"
   register: _node_binary_file_stat
+  when: _node_binary_path_stat.stat.exists and _node_binary_path_stat.stat.isdir
 
 - name: Binary | Check current version
-  ansible.builtin.command: "{{ _node_binary_file }} --version"
+  ansible.builtin.command: "{{ _node_binary_path }}/{{ _node_main_binary_file_name }} --version"
   register: _node_current_version
-  when: _node_binary_file_stat.stat.exists
+  when: _node_binary_file_stat.stat is defined and _node_binary_file_stat.stat.exists and _node_binary_file_stat.stat.isreg
   check_mode: false
   changed_when: false
 
@@ -87,54 +104,86 @@
     _node_commit_hash: "{{ new_version.split('-')[1] }}"
     _node_version_equal: "{{ current_version == new_version }}"
   vars:
-    current_version: "{% if _node_current_version.stdout is defined -%}
-      {{ _node_current_version.stdout.split(' ')[1] }}{%- else -%}absent{%- endif %}"
+    current_version: "{% if _node_current_version.stdout is defined -%} {{ _node_current_version.stdout.split(' ')[1] }}{%- else -%}absent{%- endif %}"
     new_version: "{{ _node_new_version.stdout.split(' ')[1] }}"
 
 - name: Binary | Print versions according to the '--version' flag
   ansible.builtin.debug:
-    msg: "{% if _node_version_equal -%}Versions are equal!
-    {%- else -%}{{ _node_version_msg }}{%- endif %}"
+    msg: "{% if _node_version_equal -%}Versions are equal!{%- else -%}{{ _node_version_msg }}{%- endif %}"
 
-- name: Binary | Check current binary path exists
-  ansible.builtin.stat:
-    path: "{{ _node_binary_file | dirname }}"
-  register: _node_binary_path_stat
+- name: Binary | Migration between versions
+  block:
+    - name: Binary | Check new version
+      ansible.builtin.command: "{{ _node_temp_binary_path }}/{{ _node_main_binary_file_name }} --help"
+      register: _node_new_help
+      check_mode: false
+      changed_when: false
+
+    - name: Binary | Setup supported flags
+      ansible.builtin.set_fact:
+        _node_legacy_rpc_flags_supported: "{{ '--ws-port' in _node_new_help.stdout }}"
+        _node_separate_binary_supported: "{{ '--workers-path' in _node_new_help.stdout }}"
+
+    - name: Binary | Check new rpc flags
+      ansible.builtin.fail:
+        msg: "ERROR: RPC flag --ws-port {{ 'IS' if _node_legacy_rpc_flags_supported else 'NOT' }} supported. 'node_legacy_rpc_flags' should be set to {{ _node_legacy_rpc_flags_supported
+          }}"
+      when:
+        # XOR (skip fail if both true or both false)
+        - node_legacy_rpc_flags or _node_legacy_rpc_flags_supported
+        - not (node_legacy_rpc_flags and _node_legacy_rpc_flags_supported)
+
+    - name: Binary | Check new worker flags
+      ansible.builtin.fail:
+        msg: >
+          ERROR: node flag --workers-path {{ 'IS' if _node_separate_binary_supported else 'NOT' }} supported.  'node_prepare_worker_binary' and 'node_execute_worker_binary'
+          variables should be set
+      when:
+        - _node_separate_binary_supported
+        - node_role == 'validator'
+        - node_prepare_worker_binary == '' or node_execute_worker_binary == ''
+
+- name: Binary | Remove old binary file
+  ansible.builtin.file:
+    path: "{{ _node_binary_path }}"
+    state: absent
+  when: _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir
+
+- name: Binary | Create bin directory
+  ansible.builtin.file:
+    path: "{{ _node_binary_path }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ node_user }}"
+    group: "{{ node_user }}"
+  ignore_errors: "{{ ansible_check_mode and _node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir }}"
 
 # We don't need checking of hashes. The copy module does it itself.
 # If you have the same binary file you will see a green check in the check mode.
-- name: Binary | Copy new binary
+- name: Binary | Copy new binaries
   ansible.builtin.copy:
-    src: "{{ _node_temp_binary_file }}"
-    dest: "{{ _node_binary_file }}"
-    remote_src: yes
-    mode: 0755
+    src: "{{ _node_temp_binary_path }}/{{ item.dst }}"
+    dest: "{{ _node_binary_path }}/{{ item.dst }}"
+    remote_src: true
+    mode: "0755"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
+  loop: "{{ _node_binaries }}"
   notify: restart service {{ node_handler_id }}
-  ignore_errors: "{{ not _node_binary_path_stat.stat.exists }}"
-
-- name: Binary | Delete temporary directory
-  ansible.builtin.file:
-    path: "{{ _node_temp_dir.path }}"
-    state: absent
-  check_mode: false
-  changed_when: false
-  when: _node_temp_dir.path is defined
+  ignore_errors: "{{ ansible_check_mode and (not _node_binary_path_stat.stat.exists or (_node_binary_path_stat.stat.exists and not _node_binary_path_stat.stat.isdir))
+    }}"
 
 - name: Binary | Block
-  block:
-
-  - name: Binary | Print _node_binary_version_from_url
-    ansible.builtin.debug:
-      var: _node_binary_version_from_url
-
-  - name: Binary | Create annotation in Prometheus
-    ansible.builtin.template:
-      src: annotation.j2
-      dest: "{{ node_prometheus_file_exporter_path }}"
-      owner: root
-      group: root
-      mode: '0644'
-
   when: node_prometheus_file_exporter_path != ''
+  block:
+    - name: Binary | Print _node_binary_version_from_url
+      ansible.builtin.debug:
+        var: _node_binary_version_from_url
+
+    - name: Binary | Create annotation in Prometheus
+      ansible.builtin.template:
+        src: annotation.j2
+        dest: "{{ node_prometheus_file_exporter_path }}"
+        owner: root
+        group: root
+        mode: "0644"

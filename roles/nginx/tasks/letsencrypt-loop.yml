@@ -1,0 +1,22 @@
+---
+- name: nginx | letsencrypt | domain - {{ item }} | setup letsencrypt cmd
+  ansible.builtin.set_fact:
+    _nginx_letsencrypt_cmd: certbot certonly --webroot -w /var/www/letsencrypt -d {{ item }} -n -m {{ nginx_letsencrypt_email }} --agree-tos{%- if ansible_check_mode
+      %} --dry-run{% endif %}{%- if nginx_letsencrypt_mock %} --server https://127.0.0.1:14000/dir --no-verify-ssl{%- endif %}
+
+- name: nginx | letsencrypt | domain - {{ item }} | print letsencrypt cmd
+  ansible.builtin.debug:
+    var: _nginx_letsencrypt_cmd
+
+- name: nginx | letsencrypt | domain - {{ item }} | create certificate
+  ansible.builtin.command: "{{ _nginx_letsencrypt_cmd }}"
+  register: _nginx_letsencrypt_register
+  until: _nginx_letsencrypt_register.rc is defined and _nginx_letsencrypt_register.rc == 0
+  retries: 5
+  delay: 10
+  check_mode: false
+  changed_when: false
+
+- name: nginx | letsencrypt | domain - {{ item }} | print letsencrypt output
+  ansible.builtin.debug:
+    var: _nginx_letsencrypt_register.stdout

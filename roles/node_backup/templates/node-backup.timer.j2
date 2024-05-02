@@ -1,0 +1,11 @@
+[Unit]
+Description=Node backup systemd timer
+
+[Timer]
+{% for time in node_backup_schedule %}
+OnCalendar={{ time }}
+{% endfor %}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

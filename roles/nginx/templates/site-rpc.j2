@@ -1,0 +1,55 @@
+upstream rpc_{{ item.site_id }} {
+  server 127.0.0.1:{{ item.params.rpc_port | default('9944') }};
+}
+
+upstream ws_{{ item.site_id }} {
+  server 127.0.0.1:{{ item.params.rpc_ws_port | default('9944') }};
+}
+
+# map to different upstream backends based on header
+map $http_upgrade $endpoint_{{ item.site_id }} {
+  default ws_{{ item.site_id }};
+  ''      rpc_{{ item.site_id }};
+}
+
+server {
+  listen                443 ssl;
+  server_name           {{ item.domain }};
+{% if item.ssl_issuer == 'letsencrypt' %}
+  ssl_certificate /etc/letsencrypt/live/{{ item.domain }}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/{{ item.domain }}/privkey.pem;
+{% elif item.ssl_issuer == 'manual' %}
+  ssl_certificate {{ _nginx_custom_certs_base_path }}{{ item.ssl_manual_cert_file }};
+  ssl_certificate_key {{ _nginx_custom_certs_base_path }}{{ item.ssl_manual_cert_file }};
+{% else %}
+ {{ "the ssl_issuer parameter must be defined."/0 }}
+{% endif %}
+  location / {
+    limit_req zone=zone burst={{ nginx_burst_request_rate }};
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://$endpoint_{{ item.site_id }};
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header Host $host;
+   }
+}
+
+{% if item.params.no_host_external_port is defined %}
+# we need it to execute the cloud host healthcheck, we can't use TLS there
+server {
+  listen                {{ item.params.no_host_external_port }};
+  server_name           _;
+  location / {
+    limit_req zone=zone burst={{ nginx_burst_request_rate }};
+    proxy_buffers 16 4k;
+    proxy_buffer_size 2k;
+    proxy_pass http://$endpoint_{{ item.site_id }};
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header Host $host;
+   }
+}
+{% endif %}

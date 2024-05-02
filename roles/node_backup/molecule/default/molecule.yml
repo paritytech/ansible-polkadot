@@ -1,0 +1,27 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: ${DRIVER:-docker}
+platforms:
+  - name: molecule-instance-node-backup
+    # LXD
+    source:
+      alias: debian/bullseye/amd64
+    # DOCKER
+    image: paritytech/debian11:latest
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    privileged: true
+    pre_build_image: true
+
+provisioner:
+  name: ansible
+  options:
+    diff: true
+  config_options:
+    defaults:
+      callbacks_enabled: timer
+verifier:
+  name: ansible
+  options:
+    diff: true

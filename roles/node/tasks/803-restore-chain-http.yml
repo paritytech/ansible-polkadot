@@ -1,0 +1,114 @@
+---
+- name: Restore {{ item.part }} | HTTP restoring  | Install rclone
+  ansible.builtin.apt:
+    deb: "{{ _node_chain_backup_http_rclone_deb }}"
+  when: node_chain_backup_http_install_rclone | bool
+
+- name: Restore {{ item.part }} | HTTP restoring | Check last version
+  ansible.builtin.uri:
+    url: "{{ item.http_url | trim | trim('/') }}/latest_version.meta.txt"
+    method: GET
+    return_content: true
+    use_proxy: false
+  register: _node_chain_backup_last_version_register
+  until: _node_chain_backup_last_version_register.status is defined and _node_chain_backup_last_version_register.status == 200
+  retries: 3
+  delay: 10
+  check_mode: false
+  changed_when: false
+  when: item.custom_http_url == ''
+
+- name: Restore {{ item.part }} | HTTP restoring | Setup _node_chain_backup_http_full_url 1
+  ansible.builtin.set_fact:
+    _node_chain_backup_http_full_url: "{% if item.custom_http_url == '' %} {{ item.http_url }}/{{ _node_chain_backup_last_version_register.content }} {% else %}{{
+      item.custom_http_url }}{% endif %}"
+
+- name: Restore {{ item.part }} | HTTP restoring | Setup _node_chain_backup_http_full_url 2
+  ansible.builtin.set_fact:
+    _node_chain_backup_http_full_url: "{{ _node_chain_backup_http_full_url | regex_replace('[\\s]+', '') | trim('/') }}"
+
+- name: Restore {{ item.part }} | HTTP restoring | Print backup url
+  ansible.builtin.debug:
+    msg: "{{ _node_chain_backup_http_full_url }}"
+
+- name: Restore {{ item.part }} | HTTP restoring | Print backup meta url
+  ansible.builtin.debug:
+    msg: "{{ _node_chain_backup_http_full_url }}.meta.txt"
+
+- name: Restore {{ item.part }} | HTTP restoring | Check the size of the backup
+  ansible.builtin.uri:
+    url: "{{ _node_chain_backup_http_full_url }}.meta.txt"
+    method: GET
+    return_content: true
+    use_proxy: false
+  register: _node_chain_restore_backup_size_register
+  until: _node_chain_restore_backup_size_register.status is defined and _node_chain_restore_backup_size_register.status == 200
+  retries: 3
+  delay: 10
+  check_mode: false
+  changed_when: false
+  when: _node_run_check_size
+
+- name: Restore {{ item.part }} | HTTP restoring | Print backup size
+  ansible.builtin.debug:
+    msg: Backup size = {{ (_node_chain_restore_backup_size_register.content | from_yaml).size | int | filesizeformat(true) }}
+  when: _node_run_check_size
+
+- name: Restore {{ item.part }} | HTTP restoring | Fail if free space <500MB
+  ansible.builtin.fail:
+    msg: |
+      Not enough free space to perform the restore, you should set the node_data_root_path variable
+      to a path on a different drive with enough free space
+  when:
+    - _node_run_check_size
+    - _node_restore_free_space | int - (_node_chain_restore_backup_size_register.content | from_yaml).size | int < 500 * 1024 * 1024
+    # Skipped during check mode because it doesn't actually delete the db, making the result of this task wrong
+    - not ansible_check_mode
+
+- name: Restore {{ item.part }} | HTTP restoring | Download the files.txt meta file
+  ansible.builtin.get_url:
+    url: "{{ _node_chain_backup_http_full_url }}/files.txt"
+    dest: "{{ _node_temp_dir.path }}/{{ item.part }}-files.txt"
+    mode: "0655"
+    owner: root
+    group: root
+    timeout: 30
+  check_mode: false
+  changed_when: false
+
+- name: Restore {{ item.part }} | HTTP restoring | Stop service
+  ansible.builtin.systemd:
+    name: "{{ node_app_name }}"
+    state: stopped
+  notify: restart service {{ node_handler_id }}
+  ignore_errors: "{{ not _node_systemd_unit_file_stat.stat.exists }}"
+  when: not _node_use_tmp_restore_path
+
+- name: Restore {{ item.part }} | HTTP restoring | Download chain backup
+  ansible.builtin.command: |
+    rclone copy -v --contimeout=1m --retries 6 --retries-sleep 10 --error-on-no-transfer --inplace --no-gzip-encoding
+    --disable-http2 --http-no-head --no-traverse --size-only --transfers={{ ansible_processor_vcpus * 5 }}
+    --http-url {{ _node_chain_backup_http_full_url }} :http:
+    {{ _node_backup_dl_path | quote }} --files-from-raw {{ _node_temp_dir.path }}/{{ item.part }}-files.txt
+  changed_when: true
+  notify: restart service {{ node_handler_id }}
+
+- name: Restore {{ item.part }} | HTTP restoring | Manage node_chain_backup_tmp_restore_path
+  when: _node_use_tmp_restore_path
+  block:
+    - name: Restore {{ item.part }} | GCP restoring | Stop service and cleanup DB
+      ansible.builtin.include_tasks: includes/_delete_db_folder.yml
+
+    - name: Restore {{ item.part }} | HTTP restoring | Copy backup from temporary folder
+      ansible.builtin.copy:
+        src: "{{ node_chain_backup_tmp_restore_path }}/"
+        dest: "{{ item.chain_path }}/{{ item.db_folder }}"
+        owner: "{{ node_user }}"
+        group: "{{ node_user }}"
+        remote_src: true
+        mode: "0755"
+
+    - name: Restore {{ item.part }} | HTTP restoring | Delete temporary folder
+      ansible.builtin.file:
+        path: "{{ node_chain_backup_tmp_restore_path }}"
+        state: absent

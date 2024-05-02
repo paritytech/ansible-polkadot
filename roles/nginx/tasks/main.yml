@@ -1,0 +1,124 @@
+---
+- name: nginx
+  tags: [nginx]
+  block:
+    - name: nginx | include test tasks
+      ansible.builtin.include_tasks:
+        file: tests.yml
+        apply:
+          tags: [nginx, nginx-tests]
+      tags: [nginx-tests]
+
+    - name: nginx | include remove tasks
+      ansible.builtin.include_tasks:
+        file: remove.yml
+        apply:
+          tags: [nginx, nginx-remove]
+      when: nginx_remove_enable | bool
+      tags: [nginx-remove]
+
+    - name: nginx | install packeges
+      ansible.builtin.apt:
+        name: "{{ packeges }}"
+        state: present
+        update_cache: true
+      vars:
+        packeges:
+          - nginx
+          - certbot
+
+    - name: nginx | create directories
+      ansible.builtin.file:
+        name: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - /var/www/letsencrypt
+        - /etc/letsencrypt/renewal-hooks/deploy
+        - /etc/systemd/system/nginx.service.d
+
+    - name: nginx | copy letsencrypt renewal-hook reload script
+      ansible.builtin.copy:
+        src: reload-nginx-config
+        dest: /etc/letsencrypt/renewal-hooks/deploy
+        owner: root
+        group: root
+        mode: "0744"
+
+    - name: nginx | stat dhparams
+      ansible.builtin.stat:
+        path: /etc/nginx/dhparams.pem
+      register: stat_dhparams
+
+    # The file is generated locally because it takes a LONG time to generate on VMs
+    - name: nginx | generate dhparams locally
+      become: false
+      community.crypto.openssl_dhparam:
+        path: /tmp/dhparams_{{ inventory_hostname }}.pem
+        size: "{{ nginx_dhparam_size }}"
+      delegate_to: localhost
+      when: not stat_dhparams.stat.exists
+      # molecule skip test
+      tags: molecule-notest
+
+    - name: nginx | copy dhparams to node
+      ansible.builtin.copy:
+        src: /tmp/dhparams_{{ inventory_hostname }}.pem
+        dest: /etc/nginx/dhparams.pem
+        owner: root
+        group: root
+        mode: "0600"
+      notify: reload nginx config
+      when: not stat_dhparams.stat.exists
+      # molecule skip test
+      tags: molecule-notest
+
+    - name: nginx | copy config templates
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dst }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload nginx config
+      loop:
+        - { src: nginx.conf.j2, dst: /etc/nginx/nginx.conf }
+        - { src: site-default.j2, dst: /etc/nginx/sites-enabled/default }
+        - { src: override.conf.j2, dst: /etc/systemd/system/nginx.service.d/override.conf }
+
+    - name: nginx | flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: nginx | include custom certs tasks
+      ansible.builtin.include_tasks:
+        file: certs.yml
+        apply:
+          tags: [nginx, nginx-custom-certs]
+      tags: [nginx-custom-certs]
+
+    - name: nginx | include letsencrypt tasks
+      ansible.builtin.include_tasks:
+        file: letsencrypt.yml
+        apply:
+          tags: [nginx, nginx-letsencrypt]
+      tags: [nginx-letsencrypt]
+
+    - name: nginx | include site tasks
+      ansible.builtin.include_tasks:
+        file: sites.yml
+        apply:
+          tags: [nginx, nginx-sites]
+      tags: [nginx-sites]
+
+    # to avoid 2 restarts during the first deploy
+    - name: nginx | flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: nginx | start nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+        enabled: true
+        daemon_reload: true

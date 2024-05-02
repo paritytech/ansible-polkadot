@@ -1,0 +1,14 @@
+---
+- name: restart node-backup exporter
+  ansible.builtin.systemd:
+    name: node-backup-exporter
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+- name: restart node-backup timer
+  ansible.builtin.systemd:
+    name: node-backup.timer
+    state: restarted
+    enabled: true
+    daemon_reload: true

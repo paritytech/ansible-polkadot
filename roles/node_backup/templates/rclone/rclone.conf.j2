@@ -1,0 +1,19 @@
+{% if node_backup_targets | json_query('[].type') | intersect(_node_backup_r2_types) | length > 0 %}
+[R2backups]
+type = s3
+provider = Cloudflare
+access_key_id = {{ node_backup_r2_access_key_id }}
+secret_access_key = {{ node_backup_r2_secret_access_key }}
+endpoint = {{ node_backup_r2_api_url }}
+acl = private
+upload_cutoff = 1024M
+upload_concurrency = {{ node_backup_max_concurrent_requests }}
+chunk_size = 256M
+{% endif %}
+
+{% if node_backup_targets | json_query('[].type') | intersect(_node_backup_gcp_types) | length > 0 %}
+[GCPbackups]
+type = google cloud storage
+bucket_policy_only = true
+{% endif %}
+

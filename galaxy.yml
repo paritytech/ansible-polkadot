@@ -2,13 +2,13 @@
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric lowercase characters and underscores. Namespaces cannot start with
 # underscores or numbers and cannot contain consecutive underscores
-namespace: parity
+namespace: paritytech
 
 # The name of the collection. Has the same character restrictions as 'namespace'
 name: chain
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 1.0.10
+version: 1.8.3
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -16,7 +16,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- Devops Team <devops-team@parity.io>
+  - Devops Team <devops-team@parity.io>
 
 ### OPTIONAL but strongly recommended
 # A short summary description of the collection
@@ -25,7 +25,7 @@ description: parity chain operations
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
 license:
-- GPL-2.0-or-later
+  - GPL-2.0-or-later
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
@@ -42,20 +42,19 @@ tags: []
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: "https://github.com/paritytech/ansible-galaxy.git"
+repository: https://github.com/paritytech/ansible-galaxy.git
 
 # The URL to any online docs
-documentation: http://docs.example.com
+documentation: https://github.com/paritytech/ansible-galaxy
 
 # The URL to the homepage of the collection/project
-homepage: http://example.com
+homepage: https://parity.io
 
 # The URL to the collection issue tracker
-issues: http://example.com/issue/tracker
+issues: https://github.com/paritytech/ansible-galaxy/issues
 
 # A list of file glob-like patterns used to filter any files or directories that should not be included in the build
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
 # uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
 # and '.git' are always filtered
 build_ignore: []
-

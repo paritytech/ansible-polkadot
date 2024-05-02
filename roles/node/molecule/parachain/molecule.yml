@@ -4,16 +4,14 @@ dependency:
 driver:
   name: ${DRIVER:-docker}
 platforms:
-  - name: instance-parachain
+  - name: molecule-instance-node-parachain
     # LXD
     source:
       alias: debian/bullseye/amd64
     # DOCKER
-    image: "docker.io/paritytech/debian10:latest"
+    image: paritytech/debian11:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
-    # need this for systemctl work
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    # need this for systemctl to work in Docker
     privileged: true
     # to pull image  from docker hub uncomment this
     pre_build_image: true
@@ -21,12 +19,11 @@ platforms:
 provisioner:
   name: ansible
   options:
-    D: True
+    D: true
+  config_options:
+    defaults:
+      callbacks_enabled: timer
 verifier:
   name: ansible
   options:
-    D: True
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
+    D: true

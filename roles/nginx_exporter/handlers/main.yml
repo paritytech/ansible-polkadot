@@ -1,0 +1,7 @@
+---
+- name: Restart nginx-exporter
+  ansible.builtin.systemd:
+    name: "{{ nginx_exporter_name }}"
+    state: restarted
+    enabled: true
+    daemon_reload: true

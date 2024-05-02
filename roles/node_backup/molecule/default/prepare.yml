@@ -1,0 +1,44 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  pre_tasks:
+    - name: Install Python3
+      ansible.builtin.raw: apt -y update && apt install -y python3
+      changed_when: false
+    - name: Prepare | create user parity
+      ansible.builtin.user:
+        name: parity
+  tasks:
+    - name: rococo-alice local
+      ansible.builtin.include_role:
+        name: parity.chain.node
+      vars:
+        node_rpc_port: 9933
+        node_app_name: rococo-alice-rocksdb-prune
+        node_custom_options:
+          - --alice
+    - name: rococo-bob local
+      ansible.builtin.include_role:
+        name: parity.chain.node
+      vars:
+        node_rpc_port: 9934
+        node_paritydb_enable: true
+        node_app_name: rococo-bob-paritydb-prune
+        node_custom_options:
+          - --bob
+    - name: Pretend we are in gcp | Install cron, gnupg
+      ansible.builtin.package:
+        name:
+          - cron
+          - gnupg
+        state: present
+        update_cache: true
+    - name: Pretend we are in gcp | Add an Apt signing key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+    - name: Pretend we are in gcp | Add apt repository into sources list
+      ansible.builtin.apt_repository:
+        repo: deb https://packages.cloud.google.com/apt cloud-sdk main
+        state: present

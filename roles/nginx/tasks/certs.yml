@@ -1,0 +1,45 @@
+---
+- name: nginx | certs | calculate list of custom certs
+  ansible.builtin.set_fact:
+    _nginx_custom_certs: "{{ nginx_sites | json_query(pattern) | map(attribute='ssl_manual_cert_file') | unique }}"
+  vars:
+    pattern: "[?ssl_issuer==`manual`]"
+
+- name: nginx | certs | print list of custom certs
+  ansible.builtin.debug:
+    var: _nginx_custom_certs
+
+- name: nginx | certs | manage cert directory
+  ansible.builtin.file:
+    name: "{{ _nginx_custom_certs_base_path }}"
+    state: "{% if _nginx_custom_certs | length > 0 %}directory{% else %}absent{% endif %}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: nginx | certs | custom certs
+  when: _nginx_custom_certs | length > 0
+  block:
+    - name: nginx | certs | custom certs | find unmanaged custom certs files
+      ansible.builtin.find:
+        paths: "{{ _nginx_custom_certs_base_path }}"
+        patterns: ^((?!{{ _nginx_custom_certs | join('|') }}).)*$
+        use_regex: true
+      register: _nginx_unmanaged_custom_certs_files
+
+    - name: nginx | certs | custom certs | print list of unmanaged custom certs files
+      ansible.builtin.debug:
+        msg: "{{ _nginx_unmanaged_custom_certs_files.files | map(attribute='path') }}"
+
+    - name: nginx | certs | custom certs | remove unmanaged custom certs files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ _nginx_unmanaged_custom_certs_files.files }}"
+
+- name: nginx | certs | include tasks of sorts copying
+  ansible.builtin.include_tasks:
+    file: certs-loop.yml
+    apply:
+      tags: [nginx, nginx-custom-certs]
+  loop: "{{ _nginx_custom_certs }}"

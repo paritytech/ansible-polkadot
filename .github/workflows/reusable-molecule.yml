@@ -1,0 +1,60 @@
+on:
+  workflow_call:
+    inputs:
+      role-name:
+        required: true
+        type: string
+      molecule-driver:
+        required: true
+        type: string
+      ansible-version:
+        required: false
+        type: string
+        default: 9.0.1
+jobs:
+  molecule:
+    runs-on: ubuntu-22.04
+    env:
+      DRIVER: ${{ inputs.molecule-driver }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Check molecule
+        run: |
+          if [ -d "molecule" ]; then
+            echo "MOLECULE_IS_PRESENT=PRESENT" >> "${GITHUB_ENV}"
+          fi
+        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
+      - name: Setup molecule
+        run: |
+          pip3 install --no-cache-dir yamllint ansible==${{ inputs.ansible-version }} ansible-lint \
+          molecule molecule-plugins[docker] docker \
+          jmespath
+      - name: Print Ansible version
+        run: ansible --version
+      - name: Setup LXD
+        if: ${{ env.MOLECULE_IS_PRESENT && inputs.molecule-driver == 'lxd' }}
+        # https://github.com/canonical/setup-lxd
+        uses: canonical/setup-lxd@v0.1.1
+        with:
+          channel: latest/stable
+      - name: Setup LXD molecule module
+        if: ${{ env.MOLECULE_IS_PRESENT && inputs.molecule-driver == 'lxd' }}
+        run: |
+          pip3 install --no-cache-dir molecule-lxd
+      - name: Run lint
+        run: |
+          set -e
+          yamllint .
+          ansible-lint
+        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
+      - name: Run molecule tests
+        if: ${{ env.MOLECULE_IS_PRESENT }}
+        run: molecule test --all
+        working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"

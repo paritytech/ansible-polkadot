@@ -7,18 +7,25 @@
 # It's used for naming of systemd unit files, binary files, key files etc.
 node_app_name: "{{ node_chain }}"
 # A node will be ran with permissions of this user
-node_user: "polkadot"
+node_user: polkadot
 # if it's empty, the '(home directory of node_user)/.local/share/polkadot' directory will be used
 node_data_root_path: ""
 
 ### Binary
 # You have to specify it in your playbook or inventory!
 node_binary: ""
+# Set it if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
+node_prepare_worker_binary: ""
+node_execute_worker_binary: ""
+
 node_binary_download_private_token: "{{ gitlab_private_token | default(omit) }}"
 # ID of the GPG public key that is used for signing the polkadot binaries
 node_binary_release_key_id: 9D4B2B6EB8F97156D19669A9FF0812D491B96798
 # GPG signature URL. When left empty, binary verification will not be executed
 node_binary_signature: ""
+# Set it if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
+node_prepare_worker_binary_signature: ""
+node_execute_worker_binary_signature: ""
 
 ### Node preferences
 # You can redefine any variables from playbooks directly
@@ -38,12 +45,14 @@ node_force_restart: false
 # to avoid this set the node_handler_id, it can be set only as play variable not as the host variable.
 # see https://github.com/ansible/ansible/issues/76855
 node_handler_id: ""
+# Start service after playbook execution is completed
+node_start_service: true
 
 ### File used for Ansible annotation
 # File name for prometheus node-exporter textfile collector
 # Example:  /var/lib/prometheus/node-exporter/substrate.prom
 node_prometheus_file_exporter_path: ""
-node_prometheus_file_exporter_event: "node_role"
+node_prometheus_file_exporter_event: node_role
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -52,7 +61,7 @@ node_prometheus_file_exporter_event: "node_role"
 # It's used for telemetry
 node_public_name: "{{ inventory_hostname }}"
 # It's role of node. It can be "validator", "boot", "full", "rpc".
-node_role: "full"
+node_role: full
 # You have to specify it in your playbook or inventory!
 node_chain: ""
 # Set up name of a chainspec template file from "templates" folder or https url to file.
@@ -67,17 +76,23 @@ node_wasm_runtime: ""
 node_p2p_private_key: ""
 
 ### Ports and addresses
+# Substrate changed the default rpc flags: https://github.com/paritytech/substrate/pull/13384
+# Port `9933` was replaced by combined port `9944`
+# If your node is still using the old binary with old RPC flags, please set this to true
+node_legacy_rpc_flags: true
 ## p2p
 node_p2p_bind_addr: "0.0.0.0"
 node_p2p_port: "30333"
 node_p2p_public_port: "{{ node_p2p_port }}"
+# Enable discovering public IP of the node (i.e., behind NAT) and set `--public-addr` flag
+node_enable_public_ip_detection: true
 # It works only for the 'boot' mode!
 node_p2p_ws_port: "30334"
 ## prometheus
 node_prometheus_port: "9615"
 node_prometheus_external_enable: true
 ## api
-node_rpc_port: "9933"
+node_rpc_port: "{{ '9933' if node_legacy_rpc_flags else node_rpc_ws_port }}"
 node_rpc_ws_port: "9944"
 node_ws_max_connections: "100"
 
@@ -95,39 +110,38 @@ node_custom_options: []
 node_enable_detailed_log_output: true
 
 ### Backup restoring
-## It works only for networks that have a sync node.
-# Can be "gcp", "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
-# It will also not perform a restore if the db folder exists and is not empty,
-# unless `node_chain_backup_force_restoring` is enabled
+# Can be "http", "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
+# It will also not perform a restore if the db folder exists and is not empty
 node_chain_backup_restoring_type: none
 # Name of a folder that is used by different networks to store chain.
 # The role needs the variable to find the right path to restore a backup. It's equal a chain ID in a chainspec.
 # You can find some chain IDs in README.md
 node_chain_backup_chain_path: ""
-# Link to the tar backup file.
-# A tar archive must contain database on the root level
-node_chain_backup_url: ""
-# You can find the structure of a bucket in README.md
-node_chain_backup_gcp_bucket: ""
-# Link to a gcp backup, you have to specify a full path including a bucket name.
-node_chain_backup_gcp_path: ""
-# If you don't have pre-installed google SDK the role can install it
-node_chain_backup_gcp_install_sdk: false
-# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
-# It works only for diff sync restoring types, there is only one now - gcp.
-# It can be useful if you want to restore a broken db very quickly.
-node_chain_backup_force_restoring: false
 # Path where the backup will be downloaded to before it replaces the chain's db folder
 # In this way, we can avoid to stop the node service before downloading and it also allows you to
 # set the path to an additional (temporary) drive you have attached to the VM, should you need the extra space
 node_chain_backup_tmp_restore_path: ""
 
+## HTTP backups
+# link to HTTP backups
+node_chain_backup_http_base_url: https://snapshots.polkadot.io
+# full link to a HTTP backup
+node_chain_backup_http_url: ""
+# If you don't have pre-installed rclone the role can install it
+node_chain_backup_http_install_rclone: false
+
+## TAR backups
+# Link to the tar backup file.
+# A tar archive must contain database on the root level
+node_chain_backup_url: ""
+
 ### Loging and telemetry
 node_telemetry_enable: true
 # If you set an empty value, it will use the default telemetry server
-node_telemetry_url: "wss:/telemetry.polkadot.io/submit/ 1"
+node_telemetry_url: wss:/telemetry.polkadot.io/submit/ 1
 node_log_trace_enable: false
-node_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+node_log_trace_config: 
+  babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
 # custom labels to be added to journald logs. e.g. "chain=kusama team=kusama-statemint"
 node_syslog_labels: ""
 
@@ -156,6 +170,9 @@ node_parachain_chainspec: ""
 # It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
 node_parachain_wasm_runtime: ""
 
+### Experimental Feature
+# Remote Relay Chain via RPC
+node_parachain_relay_chain_rpc_urls: []
 ### Keys
 ## p2p key
 # If it's empty, the node will generate default key file
@@ -173,7 +190,7 @@ node_parachain_p2p_ws_port: "30344"
 node_parachain_prometheus_port: "9625"
 node_parachain_prometheus_external_enable: true
 ## api
-node_parachain_rpc_port: "9943"
+node_parachain_rpc_port: "{{ '9943' if node_legacy_rpc_flags else node_parachain_rpc_ws_port }}"
 node_parachain_rpc_ws_port: "9954"
 node_parachain_ws_max_connections: "100"
 
@@ -194,33 +211,32 @@ node_parachain_custom_options: []
 #  - "--rpc-methods Unsafe"
 
 ### Backup restoring
-## It works only for polkadot, kusama, westend networks.
-# can be "gcp", "tar" or "none"
-# If it's "none", the role will not restore the blockstore of parachain
+# Can be "http", "tar" or "none". If it's "none", the role will not restore the blockstore of parachain.
+# It will also not perform a restore if the db folder exists and is not empty
 node_parachain_chain_backup_restoring_type: none
 # Name of a folder that is used by different parachain networks to store chain.
 # The role needs the variable to find the right path to restore a backup. It's equal a chain ID in a chainspec.
 # You can find some chain IDs in README.md
 node_parachain_chain_backup_chain_path: ""
+
+## HTTP backups
+# link to HTTP backups
+node_parachain_chain_backup_http_base_url: "{{ node_chain_backup_http_base_url }}"
+# full link to a HTTP backup
+node_parachain_chain_backup_http_url: ""
+
+## TAR backups
 # Link to the tar backup file.
 # A tar archive must contain database on the root level
 node_parachain_chain_backup_url: ""
-# GCP bucket that contains backups. Format is 'gs://bucket-name/'.
-# You can find the structure of a bucket in README.md
-node_parachain_chain_backup_gcp_bucket: ""
-# Link to a gcp backup, you have to specify a full path including a bucket name.
-node_parachain_chain_backup_gcp_path: ""
-# If it's true, backup will be restored using the diff mode even if the 'db' folder exists.
-# It works only for diff sync restoring types, there is only one now - gcp.
-# It can be useful if you want to restore a broken db very quickly.
-node_parachain_chain_backup_force_restoring: false
 
 ### Loging and telemetry
 node_parachain_telemetry_enable: true
 # If you set an empty value, it will use the default telemetry server
-node_parachain_telemetry_url: "wss://telemetry.polkadot.io/submit/ 1"
+node_parachain_telemetry_url: wss://telemetry.polkadot.io/submit/ 1
 node_parachain_log_trace_enable: false
-node_parachain_log_trace_config: "babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace"
+node_parachain_log_trace_config: 
+  babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
 
 ### Role flow
 # Group of variables to manage the flow of the role
@@ -231,10 +247,10 @@ node_parachain_database_wipe: false
 #####################################################################################
 
 node_memory_profiler_enable: false
-node_memory_profiler_binary: "https://github.com/koute/bytehound/releases/download/0.11.0/bytehound-x86_64-unknown-linux-gnu.tgz"
+node_memory_profiler_binary: https://github.com/koute/bytehound/releases/download/0.11.0/bytehound-x86_64-unknown-linux-gnu.tgz
 # if it's empty, the '(home directory of node_user)/logs' directory will be used
 node_memory_profiler_log_path: ""
-node_memory_profiler_log_level: "info"
+node_memory_profiler_log_level: info
 
 # This value (in milliseconds) decides which allocations are considered temporary.
 #

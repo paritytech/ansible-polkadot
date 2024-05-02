@@ -1,0 +1,5 @@
+---
+
+_ws_health_exporter_name: ws-health-exporter
+_ws_health_exporter_file: "{{ ws_health_exporter_base_path }}/exporter.py"
+_ws_health_exporter_venv: "{{ ws_health_exporter_base_path }}/venv"

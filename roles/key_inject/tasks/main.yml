@@ -1,22 +1,26 @@
-- block:
+---
+- tags: [key-inject, key_inject]
+  block:
+    - name: Parachain keys
+      ansible.builtin.include_tasks: inject.yml
+      loop:
+        - rpc_port: "{{ key_inject_parachain_rpc_port }}"
+          scheme: "{{ key_inject_parachain_scheme }}"
+          type: aura
+          priv_key: "{{ key_inject_parachain_aura_private_key }}"
+      loop_control:
+        label: Parachain {{ item.type }} key
+      when: key_inject_parachain_aura_private_key is defined
 
+    - name: Relaychain keys
+      ansible.builtin.include_tasks: inject.yml
+      loop: "{{ key_inject_relay_chain_key_list }}"
+      loop_control:
+        label: Relaychain {{ item.type }} key
+      when: key_inject_relay_chain_key_list is defined
 
-  - name: Parachain keys
-    ansible.builtin.include_tasks: inject.yml
-    loop:
-      - rpc_port: "{{ key_inject_parachain_rpc_port }}"
-        scheme: "{{ key_inject_parachain_scheme }}"
-        type: "aura"
-        priv_key: "{{ key_inject_parachain_aura_private_key }}"
-    loop_control:
-      label: "Parachain {{ item.type }} key"
-    when: key_inject_parachain_aura_private_key is defined
-
-  - name: Relaychain keys
-    ansible.builtin.include_tasks: inject.yml
-    loop: "{{ key_inject_relay_chain_key_list }}"
-    loop_control:
-      label: "Relaychain {{ item.type }} key"
-    when: key_inject_relay_chain_key_list is defined
-
-  tags: ['key-inject', 'key_inject']
+    - name: Check session key is present
+      ansible.builtin.include_tasks: check_session_key.yml
+      when:
+        - key_inject_relay_chain_key_list is defined
+        - key_inject_check_session_key

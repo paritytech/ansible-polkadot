@@ -1,0 +1,40 @@
+---
+
+
+# R2 configuration
+node_backup_r2_access_key_id: ""
+node_backup_r2_secret_access_key: ""
+node_backup_r2_api_url: ""
+
+node_backup_max_concurrent_requests: 50
+
+node_backup_schedule:
+  - "*-*-* 01:00:00"
+
+node_backup_user: polkadot
+
+node_backup_base_path: /opt/node_backup
+node_backup_tmp_path: /tmp
+
+# It wipes a local cash of the node-bakcup expoter.
+# It's useful if you rename or remove some backups from the 'node_backup_targets' variable
+node_backup_wipe_cache_enable: false
+
+# List of the nodes deployed to the host
+# service_name - is used to extract information about db type and should be following:
+# node_chain-<[paritydb|rocksdb]-[prune|archive]
+#  where: `node_chain` is value of `node_chain` variable from `node` role.
+node_backup_targets: []
+# - service_name: polkadot-rocksdb-prune
+#   local_path: /opt/polkadot-rocksdb-prune/chains/polkadot/db
+#   rpc_port: 9934
+#   # old way of backups. It takes more time to restore and backup
+#   # it's true by default
+#   tar: false
+#   # type of backup. can be 'gcp-native', 'gcp-rclone' or 'r2-rclone'
+#   type: 'gcp-rclone'
+#   # name of the bucket
+#   bucket_name: "backup"
+#   # the public domain name of the bucket
+#   # it's empty by default
+#   bucket_domain: "backup.polkadot.io"

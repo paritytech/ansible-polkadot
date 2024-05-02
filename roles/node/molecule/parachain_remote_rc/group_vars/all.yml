@@ -1,0 +1,12 @@
+---
+## Molecule
+ansible_user: root
+
+# Common
+node_app_name: dummy
+node_binary_version: v0.9.430
+node_legacy_rpc_flags: false
+node_parachain_rpc_port: 9954
+node_binary: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain
+node_binary_signature: https://github.com/paritytech/cumulus/releases/download/{{ node_binary_version }}/polkadot-parachain.asc
+node_enable_public_ip_detection: false

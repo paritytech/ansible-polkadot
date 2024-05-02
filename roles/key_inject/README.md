@@ -1,23 +1,95 @@
-# Key injection
-This Ansible script is used to inject keys into a Polkadot node. Key injection is an essential part of setting up a node to enable it to participate in the network consensus, validate transactions, and perform other important tasks. In the Polkadot ecosystem, there are different types of keys that serve specific purposes.
+# `key_inject` ansible role
 
-## Session keys
-Responsible for authoring blocks and participating in the consensus process. hotwallet
+This Ansible role is designed to facilitate the injection of cryptographic keys
+into Polkadot nodes, a crucial step for setting up a node for active
+participation in network operations like consensus and block authoring. This is
+meant only for development and testing purposes and use is not recommended in 
+production.
 
-## Controller keys
-Used to control the stake of the validator or nominator. semi-hotwallet
+## Key Role Functionality
+The `key_inject` role consists of several tasks organized into specific YAML
+files to streamline the process of key management on a Polkadot node:
 
-## Stash keys
-Used to hold the funds for staking. cold-wallet
+### Key Tasks and Files
+- **check_session_key.yml**: Checks whether session keys are present in the
+  node’s keystore.
+- **inject.yml**: Manages the injection of keys that are not found in the
+  keystore.
+- **main.yml**: Coordinates the flow between checking and injecting keys.
 
-## Process
-First, the script retrieves the public key corresponding to the provided private key. This is done using the parity.chain.subkey_inspect method and specifying the cryptographic scheme (defaulting to sr25519).
+### Detailed Process
+1. **Key Generation**:
+   - Generates session keys from specified private keys using
+   `paritytech.chain.subkey_inspect`, defaulting to the `sr25519` cryptographic
+   scheme.
 
-Next, the script checks whether the public key is already present in the keystore by sending a POST request with the author_hasKey method to the node's RPC endpoint. If the key is already present, the script proceeds to the next step, otherwise, it retries up to 12 times with a delay of 10 seconds between each attempt.
+2. **Key Verification**:
+   - An RPC call checks for the presence of keys in the keystore. If absent,
+   the process retries up to 12 times, with a 10-second pause between each try.
 
-If the key is not found in the keystore, the script proceeds to inject the key into the node using the author_insertKey method, sending another POST request to the RPC endpoint. After successful key injection, the script sends a notification to restart the service.
+3. **Key Injection**:
+   - If keys are missing in the keystore, they are injected via an RPC call.
+   This includes handling for errors and notifications for service restarts
+   after successful injections.
 
-Finally, the script displays the results of the key injection process, showing whether the key has been successfully injected or not.
+4. **Results Reporting**:
+   - Outcomes of the injection process are logged, indicating the success or
+   failure of the key injections.
 
-## Learn more
-[Cryptography on Polkadot](https://wiki.polkadot.network/docs/learn-cryptography)
+### Security and Risk Considerations
+Using Ansible for key management is feasible but must be approached with caution,
+particularly on networks with real economic value:
+- **Secure Storage**: Keys should be encrypted and securely stored within
+  Ansible variables. Use `ansible-vault encrypt` for sensitive data.
+- **Unique Keys**: Ensure no key sharing across nodes to avoid risks like
+  slashing.
+
+**Risk of Slashing**: There's a high risk of slashing in production if keys are
+mismanaged, particularly from issues like double-signing due to key reuse.
+
+**Best Practice**: In production environments, the use of `author_rotateKeys`
+RPC method is strongly recommended over manual methods to mitigate risks.
+This method ensures keys are managed securely, preventing equivocation.
+If `author_rotateKeys` is not utilized, consider implementing robust key
+management server software that provides safeguards against key misuse and 
+equivocation.
+
+## Usage Instructions
+```bash
+# playbooks/inject_keys.yaml
+---
+- name: Inject keys into Polkadot nodes
+  hosts: polkadot
+  gather_facts: false
+  tasks:
+    - name: Inject keys
+      ansible.builtin.include_role:
+        name: paritytech.chain.key_inject
+```
+```bash
+# group_vars/polkadot.yaml
+subkey_path: "https://releases.parity.io/substrate/x86_64-debian:stretch/v3.0.0/subkey/subkey"
+key_inject_relay_chain_rpc_port: 9944
+key_inject_relay_chain_key_list:
+  - scheme: "sr25519"
+    type: "gran"
+    priv_key: "0xcc...9123//1//grandpa"
+  - type: "babe"
+    priv_key: "SECRET SEED"
+  - type: "imon"
+    priv_key: "SECRET SEED"
+  - type: "para"
+    priv_key: "SECRET SEED"
+  - type: "asgn"
+    priv_key: "SECRET SEED"
+  - type: "audi"
+    priv_key: "SECRET SEED"
+key_inject_check_session_key: true
+```
+
+## Additional Resources
+This role supports a structured approach to key management but should only be
+used with a clear understanding of the security requirements and potential
+consequences like [slashing for equivocation](https://wiki.polkadot.network/docs/maintain-guides-avoid-slashing#equivocation).
+For further details on cryptographic practices in Polkadot, visit
+[Cryptography on Polkadot](https://wiki.polkadot.network/docs/learn-cryptography).

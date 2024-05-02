@@ -1,22 +1,23 @@
+---
 - name: Inject keys
+  tags: [key-inject, key_inject]
   block:
     - name: Inject | Setting {{ item.type }} pub keys
       ansible.builtin.set_fact:
-        key_inject_pub_key: "{{ (item.priv_key |
-           parity.chain.subkey_inspect(scheme=(item.scheme | default('sr25519')) )).publicKey }}"
+        key_inject_pub_key: "{{ (item.priv_key | paritytech.chain.subkey_inspect(scheme=(item.scheme | default('sr25519')))).publicKey }}"
 
     - name: Inject | Check {{ item.type }} key
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        url: http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}
         method: POST
         body:
           jsonrpc: "2.0"
-          method: "author_hasKey"
+          method: author_hasKey
           params: ["{{ key_inject_pub_key }}", "{{ item.type }}"]
           id: 1
         body_format: json
         headers:
-          Content-Type: 'application/json'
+          Content-Type: application/json
         use_proxy: false
       changed_when: false
       check_mode: false
@@ -28,21 +29,22 @@
 
     - name: Inject | Check {{ item.type }} key results
       ansible.builtin.debug:
-        msg: "Key {{ key_inject_pub_key }} ({{ item.type }}, {{ tem.scheme | default('sr25519') }}) is {{ 'NOT ' if not key_inject_uri.json.result else '' }}present in keystore"
+        msg: Key {{ key_inject_pub_key }} ({{ item.type }}, {{ item.scheme | default('sr25519') }}) is {{ 'NOT ' if not key_inject_uri.json.result else '' }}present
+          in keystore
       changed_when: not key_inject_uri.json.result
 
     - name: Inject | Inject {{ item.type }} keys
       ansible.builtin.uri:
-        url: "http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}"
+        url: http://127.0.0.1:{{ item.rpc_port | default(key_inject_relay_chain_rpc_port) }}
         method: POST
         body:
           jsonrpc: "2.0"
-          method: "author_insertKey"
+          method: author_insertKey
           params: ["{{ item.type }}", "{{ item.priv_key }}", "{{ key_inject_pub_key }}"]
           id: 1
         body_format: json
         headers:
-          Content-Type: 'application/json'
+          Content-Type: application/json
         use_proxy: false
       changed_when: true
       notify: Restart service
@@ -53,5 +55,3 @@
       ansible.builtin.debug:
         var: key_inject_uri
       when: not ansible_check_mode
-
-  tags: ['key-inject', 'key_inject']

@@ -1,5 +1,4 @@
 ---
-
 - name: Restore {{ item.part }} | Tar restoring | Delete temp download folder
   ansible.builtin.file:
     path: "{{ item.chain_path }}/tmp"
@@ -13,14 +12,14 @@
     state: directory
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-    mode: '0755'
+    mode: "0755"
   changed_when: false
   ignore_errors: "{{ not _node_data_chain_path_stat.stat.exists }}"
 
 - name: Restore {{ item.part }} | Tar restoring | Check if temp download folder already exists
   ansible.builtin.stat:
     path: "{{ item.chain_path }}/tmp"
-    get_checksum: False
+    get_checksum: false
   register: _node_data_chain_tmp_path_stat
 
 - name: Restore {{ item.part }} | Tar restoring | Download chain backup
@@ -30,19 +29,19 @@
     tmp_dest: "{{ item.chain_path }}/tmp"
     owner: "{{ node_user }}"
     group: "{{ node_user }}"
-    mode: '0644'
+    mode: "0644"
     timeout: 900
   ignore_errors: "{{ not _node_data_chain_path_stat.stat.exists or not _node_data_chain_tmp_path_stat.stat.exists }}"
 
 - name: Restore {{ item.part }} | Tar restoring | Check if backup file already exists
   ansible.builtin.stat:
     path: "{{ item.chain_path }}/db.tar"
-    get_checksum: False
+    get_checksum: false
   register: _node_data_chain_backup_file_stat
 
 - name: Restore {{ item.part }} | Tar restoring | Extract chain backup
   ansible.builtin.unarchive:
-    copy: no
+    copy: false
     src: "{{ item.chain_path }}/db.tar"
     dest: "{{ item.chain_path }}/{{ item.db_folder }}"
     owner: "{{ node_user }}"

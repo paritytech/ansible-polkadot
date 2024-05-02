@@ -1,0 +1,32 @@
+---
+- name: Check session key | Generate session
+  ansible.builtin.set_fact:
+    key_inject_session_key: "0x{% for key in key_inject_relay_chain_key_list %}{{ (key.priv_key | paritytech.chain.subkey_inspect(scheme=(key.scheme | default('sr25519')))).publicKey.replace('0x',
+      '') }}{% endfor %}"
+
+- name: Check session key | Run rpc
+  ansible.builtin.uri:
+    url: http://127.0.0.1:{{ key_inject_relay_chain_rpc_port }}
+    method: POST
+    body:
+      jsonrpc: "2.0"
+      method: author_hasSessionKeys
+      params: ["{{ key_inject_session_key }}"]
+      id: 1
+    body_format: json
+    headers:
+      Content-Type: application/json
+    use_proxy: false
+  changed_when: false
+  check_mode: false
+  register: key_inject_has_session_keys
+
+- name: Check session key | Debug
+  ansible.builtin.debug:
+    msg: "RPC call failed: {{ key_inject_has_session_keys.json }}"
+  when: key_inject_has_session_keys.json.result is not defined
+
+- name: Check session key | Check
+  ansible.builtin.debug:
+    msg: Session Key {{ key_inject_session_key }} is {{ 'NOT ' if not key_inject_has_session_keys.json.result else '' }}present in keystore
+  changed_when: not key_inject_has_session_keys.json.result

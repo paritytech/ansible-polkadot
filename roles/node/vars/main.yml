@@ -5,64 +5,48 @@
 #####################################################################################
 
 # https://semver.org/
-_node_semver_regex: '^.*((?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))(?:-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?).*$'
+_node_semver_regex: ^.*((?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))\.(?:0|(?:[1-9]\d*))(?:-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?).*$
 _node_binary_version_from_url: "{{ (node_binary | regex_search(_node_semver_regex, '\\1'))[0] }}"
 
 # Name of the binary or absolute path to it
 _node_binary_gpg_binary: gpg
 
-_node_data_root_path: "{% if node_data_root_path != '' -%}
-  {{ node_data_root_path }}
-  {%- else -%}
-  {{ _node_user_home_path }}/.local/share/polkadot
-  {%- endif %}"
-_node_memory_profiler_log_path: "{% if node_memory_profiler_log_path != '' -%}
-  {{ node_memory_profiler_log_path }}
-  {%- else -%}
-  {{ _node_user_home_path }}/logs
-  {%- endif %}"
-_node_binary_path: "{{ _node_user_home_path }}/bin"
-_node_binary_file: "{{ _node_binary_path }}/{{ node_app_name }}"
+_node_data_root_path: "{% if node_data_root_path != '' -%} {{ node_data_root_path }} {%- else -%} {{ _node_user_home_path }}/.local/share/polkadot {%- endif %}"
+_node_memory_profiler_log_path: "{% if node_memory_profiler_log_path != '' -%} {{ node_memory_profiler_log_path }} {%- else -%} {{ _node_user_home_path }}/logs {%-
+  endif %}"
+_node_binary_path: "{{ _node_user_home_path }}/bin/{{ node_app_name }}"
+_node_main_binary_file_name: node
 _node_memory_profiler_binary_file: "{{ _node_binary_path }}/libbytehound.so"
 _node_wasm_runtime_base_path: "{{ _node_user_home_path }}/wasm_runtime/{{ node_app_name }}"
-_node_unit_file: "/etc/systemd/system/{{ node_app_name }}.service"
+_node_unit_file: /etc/systemd/system/{{ node_app_name }}.service
 
-_node_subkey_url: https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
-_node_subkey_local_path: "{{ _node_binary_path }}/subkey"
+_node_chain_backup_http_rclone_deb: https://downloads.rclone.org/v1.63.1/rclone-v1.63.1-linux-amd64.deb
 
 _node_profiles:
   validator:
     in_peers: "25"
     out_peers: "25"
-    memory_high: "7900M"
-    memory_max: "8000M"
+    memory_high: 7900M
+    memory_max: 8000M
   boot:
     in_peers: "25"
     out_peers: "25"
-    memory_high: "10400M"
-    memory_max: "10500M"
+    memory_high: 10400M
+    memory_max: 10500M
   rpc:
     in_peers: "25"
     out_peers: "25"
-    memory_high: "5400M"
-    memory_max: "5500M"
+    memory_high: 5400M
+    memory_max: 5500M
   full:
     in_peers: "25"
     out_peers: "25"
-    memory_high: "5400M"
-    memory_max: "5500M"
+    memory_high: 5400M
+    memory_max: 5500M
 
-_node_restore_list: "
-  {%- if _node_restore_relaychain and not _node_restore_parachain -%}
-  {{ [_node_chain_backup_data] }}
-  {%- elif not _node_restore_relaychain and _node_restore_parachain -%}
-  {{ [_node_parachain_chain_backup_data] }}
-  {%- elif _node_restore_relaychain and _node_restore_parachain -%}
-  {{ [_node_chain_backup_data, _node_parachain_chain_backup_data] }}
-  {%- else -%}
-  {{ [] }}
-  {%- endif %}"
-
+_node_restore_list: " {%- if _node_restore_relaychain and not _node_restore_parachain -%} {{ [_node_chain_backup_data] }} {%- elif not _node_restore_relaychain and
+  _node_restore_parachain -%} {{ [_node_parachain_chain_backup_data] }} {%- elif _node_restore_relaychain and _node_restore_parachain -%} {{ [_node_chain_backup_data,
+  _node_parachain_chain_backup_data] }} {%- else -%} {{ [] }} {%- endif %}"
 
 #####################################################################################
 # Relaychain
@@ -72,22 +56,17 @@ _node_data_chain_path: "{{ _node_data_root_path }}{% if node_parachain_role != '
 _node_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_relaychain_p2p_key"
 _node_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_relaychain_chainspec.json"
 
-_node_restore_relaychain: "{{
-                            (node_chain_backup_restoring_type == 'gcp' and ( node_chain_backup_gcp_bucket != '' or node_chain_backup_gcp_path != '')) or
-                            (node_chain_backup_restoring_type == 'tar' and node_chain_backup_url != '')
-                            }}"
+_node_restore_relaychain: "{{ (node_chain_backup_restoring_type == 'http' and ( node_chain_backup_http_base_url != '' or node_chain_backup_http_url != '')) or (node_chain_backup_restoring_type
+  == 'tar' and node_chain_backup_url != '') }}"
 _node_chain_backup_data:
   part: relaychain
   restoring_type: "{{ node_chain_backup_restoring_type }}"
-  force_restoring: "{{ node_chain_backup_force_restoring }}"
   chain_path: "{{ _node_data_chain_path }}"
-  tar_url: "{{ node_chain_backup_url }}"
-  gcp_path: "{{ node_chain_backup_gcp_bucket +
-  node_chain +
-  ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive') }}"
-  custom_gcp_path: "{{ node_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_paritydb_enable else 'db' }}"
-
+  tar_url: "{{ node_chain_backup_url }}"
+  http_url: "{{ node_chain_backup_http_base_url + '/' + node_chain + ('-paritydb' if node_paritydb_enable else '-rocksdb') + ('-prune' if node_pruning > 0 else '-archive')
+    }}"
+  custom_http_url: "{{ node_chain_backup_http_url }}"
 
 #####################################################################################
 # Parachain
@@ -97,18 +76,14 @@ _node_parachain_data_chain_path: "{{ _node_data_root_path }}/chains/{{ _node_par
 _node_parachain_p2p_key_file: "{{ _node_user_home_path }}/keys/{{ node_app_name }}_parachain_p2p_key"
 _node_parachain_chainspec_file: "{{ _node_user_home_path }}/chainspecs/{{ node_app_name }}_parachain_chainspec.json"
 
-_node_restore_parachain: "{{ node_parachain_role != '' and
-                            ((node_parachain_chain_backup_restoring_type == 'gcp' and (node_parachain_chain_backup_gcp_bucket != '' or node_parachain_chain_backup_gcp_path != '' )) or
-                            (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != ''))
-                            }}"
+_node_restore_parachain: "{{ node_parachain_role != '' and ((node_parachain_chain_backup_restoring_type == 'http' and (node_parachain_chain_backup_http_base_url !=
+  '' or node_parachain_chain_backup_http_url != '' )) or (node_parachain_chain_backup_restoring_type == 'tar' and node_parachain_chain_backup_url != '')) }}"
 _node_parachain_chain_backup_data:
   part: parachain
   restoring_type: "{{ node_parachain_chain_backup_restoring_type }}"
-  force_restoring: "{{ node_parachain_chain_backup_force_restoring }}"
   chain_path: "{{ _node_parachain_data_chain_path }}"
-  tar_url: "{{ node_parachain_chain_backup_url }}"
-  gcp_path: "{{ node_parachain_chain_backup_gcp_bucket +
-  node_parachain_chain +
-  ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune' if node_parachain_pruning > 0 else '-archive') }}"
-  custom_gcp_path: "{{ node_parachain_chain_backup_gcp_path }}"
   db_folder: "{{ 'paritydb' if node_parachain_paritydb_enable else 'db' }}"
+  tar_url: "{{ node_parachain_chain_backup_url }}"
+  http_url: "{{ node_parachain_chain_backup_http_base_url + '/' + node_parachain_chain + ('-paritydb' if node_parachain_paritydb_enable else '-rocksdb') + ('-prune'
+    if node_parachain_pruning > 0 else '-archive') }}"
+  custom_http_url: "{{ node_parachain_chain_backup_http_url }}"

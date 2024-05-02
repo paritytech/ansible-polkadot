@@ -1,0 +1,50 @@
+---
+nginx_letsencrypt_email: devops-team@parity.io
+nginx_letsencrypt_mock: false
+nginx_dhparam_size: 4096
+nginx_worker_rlimit_nofile: 30000
+# requests per second
+nginx_max_request_rate: 2
+nginx_burst_request_rate: 5
+
+# print extended data about clients
+nginx_log_extended_enable: false
+
+nginx_http_context_directives: []
+#  - "server_names_hash_bucket_size 128"
+
+# flow
+## Remove nginx, letsencrypt. Wipe all configs and , certificates.
+nginx_remove_enable: false
+
+# 'nginx_sites':
+## - 'template' - a name of a site template file, including '.j2'.
+## - 'domain' - a real domain name as is, without placeholders etc.
+## - 'ssl_issuer' - defines how TLS certificates are managed. Can be 'manual' or 'letsencrypt'.
+## - 'ssl_manual_cert_file' - it must be specified if 'ssl_issuer'='manual'.
+##   It defines the name of a custom certificate file.
+##   Custom certificates have to be stored in the 'files' directories on the role or playbook levels.
+##   But it's better to store them on the playbook level.
+## - 'params' - optional. But, it must be specified if the template of the site uses any custom variables inside.
+##   The dictionary contains user variables that are used in site templates.
+##
+## 'template', 'domain', 'ssl_manual_cert_file' variables can have the same values
+## in more than one item of the 'nginx_sites' list, the role can manage it.
+## But, a pair of 'template' and 'domain' variables must be unique for each item of the list.
+
+#nginx_sites:
+#  - template: site-rpc.j2
+#    domain: "a.r-test-2.parity-lab.parity.io"
+#    ssl_issuer: letsencrypt
+#    params:
+#      rpc_port: 9933
+#      rpc_ws_port: 9944
+#      no_host_external_port: 8081 # it accepts any host in headers. It's useful for health checks.
+#  - template: site-rpc.j2
+#    domain: "b.r-test-2.parity-lab.parity.io"
+#    ssl_issuer: letsencrypt
+#    params: {}
+#  - template: site-connect.j2
+#    domain: "c.r-test-2.parity-lab.parity.io"
+#    ssl_issuer: manual
+#    ssl_manual_cert_file: "ws.polkadot.io.pem"

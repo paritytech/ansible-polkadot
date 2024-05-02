@@ -1,0 +1,18 @@
+name: check PR (nginx)
+
+on:
+  pull_request:
+    paths:
+      - roles/nginx/**
+      - .github/**
+
+jobs:
+  run-molecule-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        molecule-driver: [docker]
+    uses: ./.github/workflows/reusable-molecule.yml
+    with:
+      role-name: nginx
+      molecule-driver: ${{ matrix.molecule-driver }}

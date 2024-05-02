@@ -1,0 +1,28 @@
+---
+- name: Create custom keyring directory
+  ansible.builtin.file:
+    path: "{{ _secure_apt_keyring_folder }}"
+    state: directory
+    mode: "0755"
+
+- name: Add APT key
+  ansible.builtin.apt_key:
+    id: "{{ secure_apt_key }}"
+    keyring: "{{ _secure_apt_keyring_folder }}/{{ secure_apt_key }}.gpg"
+    keyserver: "{{ secure_apt_keyserver }}"
+  # Causes a fatal error in check mode due to apt-key + grep
+  # more info: https://github.com/ansible/ansible/issues/28820
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Set restrictive permissions for key file
+  ansible.builtin.file:
+    path: "{{ _secure_apt_keyring_folder }}/{{ secure_apt_key }}.gpg"
+    mode: "0444"
+  # Causes a fatal error in check mode
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Add APT repository
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64 signed-by={{ _secure_apt_keyring_folder }}/{{ secure_apt_key }}.gpg] {{ item }}
+    update_cache: "{{ secure_apt_update_cache }}"
+  loop: "{{ secure_apt_repositories }}"

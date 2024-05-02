@@ -1,0 +1,45 @@
+---
+- name: nginx | sites | build the list of site configs 1
+  ansible.builtin.set_fact:
+    _nginx_sites: []
+
+- name: nginx | sites | build the list of site configs 2
+  ansible.builtin.set_fact:
+    _nginx_sites: "{{ _nginx_sites + [item | combine({'site_name': _nginx_site_name, 'site_id': _nginx_site_id, 'params': _nginx_site_params}, recursive=True)] }}"
+  vars:
+    _nginx_site_name: "{{ (item.template.split('.')[0] + '_' + item.domain) | regex_replace('[^0-9a-zA-Z]+', '_') }}"
+    _nginx_site_id: "{{ (_nginx_site_name | hash('sha1'))[:6] }}"
+    _nginx_site_params: "{{ item.params | default({}) }}"
+  loop: "{{ nginx_sites }}"
+
+- name: nginx | sites | print the list of site configs
+  ansible.builtin.debug:
+    msg: "{{ _nginx_sites }}"
+
+- name: nginx | sites | find unmanaged site config files
+  ansible.builtin.find:
+    paths: /etc/nginx/sites-enabled
+    patterns: ^((?!{{ _nginx_sites | map(attribute='site_name') | join('|') }}|default).)*$
+    use_regex: true
+  register: _nginx_unmanaged_site_config_files
+
+- name: nginx | sites  | print list of unmanaged site config files
+  ansible.builtin.debug:
+    msg: "{{ _nginx_unmanaged_site_config_files.files | map(attribute='path') }}"
+
+- name: nginx | sites | remove unmanaged site config files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ _nginx_unmanaged_site_config_files.files }}"
+  notify: reload nginx config
+
+- name: nginx | sites | copy site configs
+  ansible.builtin.template:
+    src: "{{ item.template }}"
+    dest: /etc/nginx/sites-enabled/{{ item.site_name }}
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx config
+  loop: "{{ _nginx_sites }}"

@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+
+# We mustn't remove it. Any failed command can bring an inconsistent backup.
+set -eu -o pipefail
+
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Backup $0 Started!\n---\n"
+
+tmp_meta_file="{{ node_backup_tmp_path }}/{{ item.service_name }}.meta.txt"
+tmp_latest_version_file="{{ node_backup_tmp_path }}/{{ item.service_name }}_latest_version.meta.txt"
+
+set -x
+systemctl start {{ item.service_name }}
+set +x
+
+counter=1
+curl_result=""
+
+until echo ${curl_result} | grep 'false'
+do
+  if [ $counter -gt 20 ];then
+    echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) the health check is failed for '{{ item.service_name }}' service. The backup will be skipped!\n---\n"
+    false
+  fi
+  echo -e "Run health-check ${counter}..."
+  set -x
+  curl_result=$(curl --retry 3 --retry-delay 60 --retry-connrefused -s -X POST -H "Content-Type: application/json" \
+    -d '{"id":1, "jsonrpc":"2.0", "method": "system_health", "params":[]}' \
+    http://127.0.0.1:{{ item.rpc_port }} | jq '.["result"]["isSyncing"]')
+  set +x
+  if [ $counter -gt 1 ];then
+    sleep 60
+  fi
+  let "counter+=1"
+done
+
+set -x
+last_block=$(curl --retry 3 --retry-connrefused --retry-delay 60 -X POST -H "Content-Type: application/json" \
+  -d '{"id":1, "jsonrpc":"2.0", "method": "system_syncState", "params":[]}' \
+  http://127.0.0.1:{{ item.rpc_port }} \
+  | jq '.["result"]["currentBlock"]')
+
+version=$(curl --retry 3 --retry-connrefused --retry-delay 60 -X POST -H "Content-Type: application/json" \
+          -d '{"id":1, "jsonrpc":"2.0", "method": "system_version", "params":[]}' \
+          http://127.0.0.1:{{ item.rpc_port }} \
+          | jq '.["result"]')
+set +x
+version=${version%\"}
+version=${version#\"}
+time_stamp=$(date +"%s")
+
+SECONDS=0
+
+# Database would be modified during the backup and potentially corrupt the backup. So we'll
+# need to stop the unit and start it again after the backup.
+set -x
+systemctl stop {{ item.service_name }}
+set +x
+
+# Get the list of local files
+local_files=/tmp/local-files-{{ item.service_name }}-${1}
+remote_files=/tmp/remote-files-{{ item.service_name }}-${1}
+find {{ item.local_path }} -mindepth 1 -type f | sed "s|{{ item.local_path }}||g" | sed 's/^\/*//' | sort > ${local_files}
+
+{% if item.type == 'gcp-native' %}
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Start the '{{ item.id }}' backup\n---\n"
+set -x
+gcloud storage \
+  cp -r {{ item.local_path }} gs://{{ item.bucket_name }}/{{ item.service_name }}/${1}
+
+# Get the list of files in the bucket
+gcloud storage ls -r gs://{{ item.bucket_name }}/{{ item.service_name }}/${1} | grep -vF '/:' \
+  | sed "s|gs://{{ item.bucket_name }}/{{ item.service_name }}/${1}/||g" | grep . | sort > ${remote_files}
+set +x
+
+# Check if remote version matches the local one
+if ! diff ${remote_files} ${local_files} -q; then
+  echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) The contents of the remote bucket does not match the local copy for the '{{ item.id }}' backup. Cleaning the remote backup...\n---\n"
+  set -x
+  gcloud storage rm -r gs://{{ item.bucket_name }}/{{ item.service_name }}/${1}
+  set +x
+  echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Show diff and exit!\n---\n"
+  set -x
+  diff ${remote_files} ${local_files}
+  rm -f ${remote_files} ${local_files}
+  set +x
+  exit 1
+fi
+
+set -x
+gcloud storage \
+  cp ${remote_files} gs://{{ item.bucket_name }}/{{ item.service_name }}/${1}/files.txt
+rm -f ${remote_files}
+size=$(gsutil \
+  du -s gs://{{ item.bucket_name }}/{{ item.service_name }}/${1} | awk '{ print $1 }' )
+
+echo -e "size: ${size}\nlastBlock: ${last_block}\nversion: ${version}" > ${tmp_meta_file}
+gcloud storage \
+  cp ${tmp_meta_file} gs://{{ item.bucket_name }}/{{ item.service_name }}/${1}.meta.txt
+rm -f ${tmp_meta_file}
+
+echo "${1}" > ${tmp_latest_version_file}
+gcloud storage \
+  cp ${tmp_latest_version_file} gs://{{ item.bucket_name }}/{{ item.service_name }}/latest_version.meta.txt
+rm -f ${tmp_latest_version_file}
+set +x
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Completed the '{{ item.id }}' backup in ${SECONDS} seconds\n---\n"
+
+{% if item.tar | default(true) %}
+SECONDS=0
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Start the '{{ item.id }}' TAR backup\n---\n"
+set -x
+tar -cf - {{ item.local_path }} | gcloud storage \
+  cp - gs://{{ item.bucket_name }}/tar/{{ item.service_name }}/${1}.tar
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Completed the '{{ item.id }}' TAR backup in ${SECONDS} seconds\n---\n"
+set +x
+{% endif %}
+
+set -x
+total_size=$(gsutil \
+  du -s gs://{{ item.bucket_name }} | awk '{ print $1 }' )
+set +x
+{% endif %}
+
+
+{% if item.type in _node_backup_rclone_types %}
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Start the '{{ item.id }}' backup\n---\n"
+
+{% if item.type == 'gcp-rclone' %}
+remote="GCPbackups"
+{% elif item.type == 'r2-rclone' %}
+remote="R2backups"
+{% else %}
+{{ "backup type must be defined."/0 }}
+{% endif %}
+
+set -x
+LATEST_BACKUP=$(rclone cat ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/latest_version.meta.txt)
+if [ -n "$LATEST_BACKUP" ]; then
+  rclone copy -v --transfers={{ node_backup_max_concurrent_requests }} \
+  --contimeout=10m --retries 10 --retries-sleep 60 --error-on-no-transfer --fast-list --checksum \
+  ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${LATEST_BACKUP} \
+  ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1}
+  echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Completed copying of the latest backup for the '{{ item.id }}' backup in ${SECONDS} seconds\n---\n"
+  SECONDS=0
+fi
+rclone sync -v --transfers={{ node_backup_max_concurrent_requests }} \
+  --contimeout=10m --retries 10 --retries-sleep 60 --error-on-no-transfer  \
+  --update --fast-list --delete-during --disable-http2 --no-gzip-encoding \
+  {{ item.local_path }} ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1}
+
+# Get the list of files in the bucket
+rclone lsf -R --fast-list --files-only \
+  ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1} | sort > ${remote_files}
+set +x
+
+# Check if remote version matches the local one
+if ! diff ${remote_files} ${local_files} -q; then
+  echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) The contents of the remote bucket does not match the local copy for the '{{ item.id }}' backup. Cleaning the remote backup...\n---\n"
+  set -x
+  rclone purge -v --contimeout=10m --retries 10 --retries-sleep 60 --fast-list \
+    ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1}
+  set +x
+  echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Show diff and exit!\n---\n"
+  set -x
+  diff ${remote_files} ${local_files}
+  rm -f ${remote_files} ${local_files}
+  set +x
+  exit 1
+fi
+
+set -x
+rclone copyto -v \
+  ${remote_files} ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1}/files.txt
+rm -f ${remote_files}
+
+size=$(rclone size --json ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1} | jq '.bytes')
+
+echo -e "size: ${size}\nlastBlock: ${last_block}\nversion: ${version}" > ${tmp_meta_file}
+rclone copyto -v \
+  ${tmp_meta_file} ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/${1}.meta.txt
+rm -f ${tmp_meta_file}
+
+echo "${1}" > ${tmp_latest_version_file}
+rclone copyto -v \
+  ${tmp_latest_version_file} ${remote}:{{ item.bucket_name }}/{{ item.service_name }}/latest_version.meta.txt
+rm -f ${tmp_latest_version_file}
+set +x
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Completed the '{{ item.id }}' backup in ${SECONDS} seconds\n---\n"
+
+{% if item.tar | default(true) %}
+SECONDS=0
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Start the '{{ item.id }}' TAR backup\n---\n"
+set -x
+tar -cf - {{ item.local_path }} | rclone rcat -v --contimeout=10m --retries 10 --retries-sleep 60 --error-on-no-transfer \
+  --transfers=1 --disable-http2 \
+  ${remote}:{{ item.bucket_name }}/tar/{{ item.service_name }}/${1}.tar
+set +x
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Completed the '{{ item.id }}' TAR backup in ${SECONDS} seconds\n---\n"
+{% endif %}
+
+set -x
+total_size=$(rclone size --json ${remote}:{{ item.bucket_name }} | jq '.bytes')
+set +x
+{% endif %}
+
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Notify the backup exporter about the latest successful backup\n---\n"
+set -x
+curl --retry 3 --retry-connrefused --retry-delay 60 -X POST -H "Content-Type: application/json" -d \
+ '{"serviceName":"{{ item.service_name }}", "backupName": "'$1'", "timeStamp": "'$time_stamp'",
+  "size": "'$size'", "totalSize": "'$total_size'", "lastBlock": "'$last_block'", "version": "'$version'",
+  "storage": "{{ _node_backup_storages[item.type] }}", "bucketName": "{{ item.bucket_name }}", "bucketDomain": "{{ item.bucket_domain | default("") }}"}' \
+  http://127.0.0.1:60101
+
+rm -f ${local_files}
+systemctl start {{ item.service_name }}
+set +x
+
+echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Backup $0 Finished!\n---\n"
