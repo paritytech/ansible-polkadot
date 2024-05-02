@@ -1,4 +1,4 @@
-# `key_inject` ansible role
+# key_inject ansible role
 
 This Ansible role is designed to facilitate the injection of cryptographic keys
 into Polkadot nodes, a crucial step for setting up a node for active
