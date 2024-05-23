@@ -102,7 +102,7 @@ node_db_cache: ""
 # amount of blocks to save state in the pruning mode
 # if you need the state pruning mode the recommended (default) value is 256
 # 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
-node_pruning: 0
+node_pruning: 256
 # You can specify any custom options as a list
 node_custom_options: []
 #  - "--wasm-execution Compiled"
@@ -204,7 +204,7 @@ node_parachain_out_peers: "25"
 # amount of blocks to save state in the pruning mode
 # if you need the state pruning mode the recommended (default) value is 256
 # 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
-node_parachain_pruning: 0
+node_parachain_pruning: 256
 # You can specify any custom options as a list
 node_parachain_custom_options: []
 #  - "--wasm-execution Compiled"
