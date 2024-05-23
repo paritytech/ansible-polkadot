@@ -79,7 +79,7 @@ node_p2p_private_key: ""
 # Substrate changed the default rpc flags: https://github.com/paritytech/substrate/pull/13384
 # Port `9933` was replaced by combined port `9944`
 # If your node is still using the old binary with old RPC flags, please set this to true
-node_legacy_rpc_flags: true
+node_legacy_rpc_flags: false
 ## p2p
 node_p2p_bind_addr: "0.0.0.0"
 node_p2p_port: "30333"
