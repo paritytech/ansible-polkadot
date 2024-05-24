@@ -2,7 +2,7 @@
 subkey_path: https://releases.parity.io/substrate/x86_64-debian%3Astretch/v3.0.0/subkey/subkey
 
 # Parachain key injection variables
-key_inject_parachain_rpc_port: 9955
+key_inject_parachain_rpc_port: 9954
 key_inject_parachain_scheme: sr25519
 # key_inject_parachain_aura_private_key=
 
