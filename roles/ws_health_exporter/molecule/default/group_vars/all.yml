@@ -3,13 +3,18 @@
 ansible_user: root
 
 ## node
-node_binary_version: v0.9.42
+node_role: "validator"
 node_user: polkadot
-node_binary: https://github.com/paritytech/polkadot/releases/download/{{ node_binary_version }}/polkadot
-node_chain: rococo-local
+node_chain: westend-local
+node_chain_backup_chain_path: "westend_local_testnet"
 node_chain_backup_restoring_type: none
 node_parachain_chain_backup_restoring_type: none
+node_p2p_bind_addr: "127.0.0.1"
 node_ansible_annotation_path: /tmp/substrate.prom
+node_binary_version: v1.12.0
+node_binary: "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot"
+node_prepare_worker_binary: "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot-prepare-worker"
+node_execute_worker_binary: "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot-execute-worker"
 
 ## ws_health_exporter
 ws_health_exporter_user: "{{ node_user }}"
@@ -19,5 +24,5 @@ ws_health_exporter_node_max_unsynchronized_block_drift: 2
 ws_health_exporter_node_min_peers: 1
 
 ws_health_exporter_ws_urls:
-  - ws://127.0.0.1:9944
-  - ws://127.0.0.1:9945
+  - ws://127.0.0.1:9933
+  - ws://127.0.0.1:9934
