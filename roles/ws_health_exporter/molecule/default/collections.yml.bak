@@ -1,4 +1,0 @@
-#collections:
-#  - name: https://github.com/paritytech/ansible-galaxy.git
-#    type: git
-#    version: main
