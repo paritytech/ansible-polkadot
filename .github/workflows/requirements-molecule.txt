@@ -48,4 +48,4 @@ zipp==3.18.2
 # they should be updated together
 # when new versions of the Docker Python library > 7.1.0 are released
 docker==7.1.0
-requests==2.31.0
+requests==2.32.2
