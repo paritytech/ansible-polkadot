@@ -24,30 +24,26 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.12'
       - name: Check molecule
         run: |
           if [ -d "molecule" ]; then
             echo "MOLECULE_IS_PRESENT=PRESENT" >> "${GITHUB_ENV}"
           fi
         working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
-      - name: Setup molecule
+      - name: Install Python modules
         run: |
-          pip3 install --no-cache-dir yamllint ansible==${{ inputs.ansible-version }} ansible-lint \
-          molecule molecule-plugins[docker] docker \
-          jmespath
-      - name: Print Ansible version
-        run: ansible --version
-      - name: Setup LXD
-        if: ${{ env.MOLECULE_IS_PRESENT && inputs.molecule-driver == 'lxd' }}
-        # https://github.com/canonical/setup-lxd
-        uses: canonical/setup-lxd@v0.1.1
-        with:
-          channel: latest/stable
-      - name: Setup LXD molecule module
-        if: ${{ env.MOLECULE_IS_PRESENT && inputs.molecule-driver == 'lxd' }}
+          set -e
+          echo "ansible==${{ inputs.ansible-version }}" >> requirements-molecule.txt
+          pip3 install --no-cache-dir -r requirements-molecule.txt
+        working-directory: "${{ github.repository }}/.github/workflows"
+      - name: Print versions
         run: |
-          pip3 install --no-cache-dir molecule-lxd
+          set -e
+          ansible --version
+          molecule --version
+          yamllint --version
+          ansible-lint --version
       - name: Run lint
         run: |
           set -e

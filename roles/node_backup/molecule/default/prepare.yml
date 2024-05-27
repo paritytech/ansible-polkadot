@@ -3,42 +3,53 @@
   hosts: all
   gather_facts: false
   pre_tasks:
-    - name: Install Python3
+    - name: Prepare | Install Python3
       ansible.builtin.raw: apt -y update && apt install -y python3
+      changed_when: false
+    - name: Prepare | Install required packages
+      ansible.builtin.apt:
+        name:
+          - gpg
+          - cron
+        update_cache: false
       changed_when: false
     - name: Prepare | create user parity
       ansible.builtin.user:
-        name: parity
+        name: polkadot
   tasks:
-    - name: rococo-alice local
+    - name: Include node alice
+      # use include role to skip ansible-lint
       ansible.builtin.include_role:
-        name: parity.chain.node
+        name: node
       vars:
-        node_rpc_port: 9933
-        node_app_name: rococo-alice-rocksdb-prune
+        node_app_name: "alice-rocksdb-prune"
+        node_handler_id: "{{ node_app_name }}"
+        node_data_root_path: "/opt/{{ node_app_name }}"
+        # 12D3KooWHhB5LqXji1moEvbzCEq7HzJuMvqi5E3BkoceUcQFPX2f
+        node_p2p_private_key: "4f1ae54a051e08161456b74a70b85e45e161fd4f614637f50a2a5f09ba7afb2e"
         node_custom_options:
-          - --alice
-    - name: rococo-bob local
+          - "--alice"
+          - "--bootnodes /ip4/127.0.0.1/tcp/30334/p2p/12D3KooWKvNLq5fFMcQvdZHejhUvRQcSxDpbWFBo1mXh4kGR949r"
+          - "--no-hardware-benchmarks"
+          - "--rpc-cors '*'"
+        node_p2p_port: "30333"
+        node_prometheus_port: "9615"
+        node_rpc_port: "9933"
+    - name: Include node bob
       ansible.builtin.include_role:
-        name: parity.chain.node
+        name: node
       vars:
-        node_rpc_port: 9934
+        node_app_name: "bob-paritydb-prune"
+        node_handler_id: "{{ node_app_name }}"
+        node_data_root_path: /opt/{{ node_app_name }}
+        # 12D3KooWKvNLq5fFMcQvdZHejhUvRQcSxDpbWFBo1mXh4kGR949r
+        node_p2p_private_key: "042cd72c647f27c6da663f15665b59f707bce7de4b771b098361ff756cde168e"
+        node_custom_options:
+          - "--bob"
+          - "--bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWHhB5LqXji1moEvbzCEq7HzJuMvqi5E3BkoceUcQFPX2f"
+          - "--no-hardware-benchmarks"
+          - "--rpc-cors '*'"
+        node_p2p_port: "30334"
+        node_prometheus_port: "9616"
+        node_rpc_port: "9934"
         node_paritydb_enable: true
-        node_app_name: rococo-bob-paritydb-prune
-        node_custom_options:
-          - --bob
-    - name: Pretend we are in gcp | Install cron, gnupg
-      ansible.builtin.package:
-        name:
-          - cron
-          - gnupg
-        state: present
-        update_cache: true
-    - name: Pretend we are in gcp | Add an Apt signing key
-      ansible.builtin.apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
-    - name: Pretend we are in gcp | Add apt repository into sources list
-      ansible.builtin.apt_repository:
-        repo: deb https://packages.cloud.google.com/apt cloud-sdk main
-        state: present

@@ -5,7 +5,7 @@ ansible_user: root
 ## Node
 node_chain: polkadot
 node_app_name: "{{ node_chain }}"
-node_binary_version: v1.3.0
+node_binary_version: v1.12.0
 node_legacy_rpc_flags: false
 node_rpc_port: 9944
 node_binary: https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-{{ node_binary_version }}/polkadot

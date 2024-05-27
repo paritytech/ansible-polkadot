@@ -10,15 +10,15 @@
       ansible.builtin.debug:
         var: ansible_facts.services[item+'.service']
       loop:
-        - rococo-alice
-        - rococo-bob
+        - alice
+        - bob
 
     - name: check service
       ansible.builtin.assert:
         that: ansible_facts.services[item+'.service'].state == 'running'
       loop:
-        - rococo-alice
-        - rococo-bob
+        - alice
+        - bob
 
     - name: check ws health exporter
       ansible.builtin.uri:

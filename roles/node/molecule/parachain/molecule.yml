@@ -5,9 +5,6 @@ driver:
   name: ${DRIVER:-docker}
 platforms:
   - name: molecule-instance-node-parachain
-    # LXD
-    source:
-      alias: debian/bullseye/amd64
     # DOCKER
     image: paritytech/debian11:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}

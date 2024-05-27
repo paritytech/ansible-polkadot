@@ -15,11 +15,4 @@ molecule converge
 molecule destroy
 ```
 
-#### LXD 
-Test role with LXD driver 
-```shell
-DRIVER=lxd molecule create
-DRIVER=lxd molecule converge
-DRIVER=lxd molecule destroy
-```
 
