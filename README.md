@@ -1,13 +1,13 @@
-# Ansible Collection - paritytech.chain
+# Ansible Polkadot Collection - paritytech.chain
 
 ## Install Ansible collections
 
 Create `requirements.yml` file in your playbook repository (or add to the existing file):
 ```yaml
 collections:
-  - name: https://github.com/paritytech/ansible-galaxy.git
+  - name: https://github.com/paritytech/ansible-polkadot.git
     type: git
-    version: 1.8.0
+    version: 1.10.0
 ```
 
 or
@@ -15,19 +15,19 @@ or
 ```yaml
 collections:
   - name: paritytech.chain
-    version: 1.8.0
+    version: 1.10.0
 ```
 
 If you want to install collections in the project space, you have to run:
 ```commandline
 mkdir collections
-ansible-galaxy collection install -f -r requirements.yml -p ./collections
+ansible-polkadot collection install -f -r requirements.yml -p ./collections
 ```
 
 If you want to install collections in the global space (`~/.ansible/collections`),
 you have to run:
 ```commandline
-ansible-galaxy collection install -f -r requirements.yml
+ansible-polkadot collection install -f -r requirements.yml
 ```
 
 ## Roles

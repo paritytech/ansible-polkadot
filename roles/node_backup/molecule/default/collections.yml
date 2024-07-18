@@ -1,5 +1,5 @@
 ---
 collections:
-  - name: https://github.com/paritytech/ansible-galaxy.git
+  - name: https://github.com/paritytech/ansible-polkadot.git
     type: git
     version: main
