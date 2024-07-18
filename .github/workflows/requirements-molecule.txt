@@ -38,7 +38,7 @@ ruamel.yaml==0.18.6
 ruamel.yaml.clib==0.2.8
 selinux==0.3.0
 subprocess-tee==0.4.1
-urllib3==2.2.1
+urllib3==2.2.2
 wcmatch==8.5.2
 yamllint==1.35.1
 zipp==3.19.1
