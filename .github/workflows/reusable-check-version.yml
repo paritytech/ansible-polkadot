@@ -45,13 +45,13 @@ jobs:
           echo "MAIN_GALAXY_VERSION=${MAIN_GALAXY_VERSION}" >> "${GITHUB_ENV}"
       - name: Validate the current version
         if: ${{ ! env.CURRENT_GALAXY_VERSION }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.setFailed('Your Galaxy version is absent or empty!')
       - name: Compare versions
         if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION >= env.CURRENT_GALAXY_VERSION }}
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.setFailed('Your Galaxy version is lower than the version in the main branch or equal. Please bump your version!')
