@@ -41,7 +41,7 @@ subprocess-tee==0.4.1
 urllib3==2.2.1
 wcmatch==8.5.2
 yamllint==1.35.1
-zipp==3.18.2
+zipp==3.19.1
 # requests > 2.31.0 brakes Docker Python library
 # The fix https://github.com/docker/docker-py/pull/3257/files
 # has not been in a release of the Docker Python library
