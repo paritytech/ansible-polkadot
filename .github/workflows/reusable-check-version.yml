@@ -50,8 +50,9 @@ jobs:
           script: |
             core.setFailed('Your Galaxy version is absent or empty!')
       - name: Compare versions
-        if: ${{ inputs.compare-versions && env.MAIN_GALAXY_VERSION >= env.CURRENT_GALAXY_VERSION }}
         uses: actions/github-script@v7
         with:
           script: |
-            core.setFailed('Your Galaxy version is lower than the version in the main branch or equal. Please bump your version!')
+            if (( ${{env.MAIN_GALAXY_VERSION}} >= ${{env.CURRENT_GALAXY_VERSION}} )); then
+              core.setFailed('Your Galaxy version is lower than the version in the main branch or equal. Please bump your version!')
+            fi
