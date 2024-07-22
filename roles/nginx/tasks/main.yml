@@ -52,26 +52,16 @@
         path: /etc/nginx/dhparams.pem
       register: stat_dhparams
 
-    # The file is generated locally because it takes a LONG time to generate on VMs
-    - name: nginx | generate dhparams locally
-      become: false
+    - name: nginx | generate dhparams
       community.crypto.openssl_dhparam:
-        path: /tmp/dhparams_{{ inventory_hostname }}.pem
+        path:  /etc/nginx/dhparams.pem
         size: "{{ nginx_dhparam_size }}"
-      delegate_to: localhost
-      when: not stat_dhparams.stat.exists
-      # molecule skip test
-      tags: molecule-notest
-
-    - name: nginx | copy dhparams to node
-      ansible.builtin.copy:
-        src: /tmp/dhparams_{{ inventory_hostname }}.pem
-        dest: /etc/nginx/dhparams.pem
         owner: root
         group: root
         mode: "0600"
       notify: reload nginx config
       when: not stat_dhparams.stat.exists
+      ignore_errors: "{{ ansible_check_mode }}"
       # molecule skip test
       tags: molecule-notest
 
