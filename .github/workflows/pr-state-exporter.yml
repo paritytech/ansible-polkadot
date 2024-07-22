@@ -5,6 +5,13 @@ on:
     paths:
       - roles/state_exporter/**
       - .github/**
+  push:
+    paths:
+      - roles/state_exporter/**
+      - .github/**
+    branches:
+      - '!main'
+      - '**'
 
 jobs:
   run-molecule-tests:
