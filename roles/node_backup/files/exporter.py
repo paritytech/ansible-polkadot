@@ -121,11 +121,6 @@ class HttpProcessor(BaseHTTPRequestHandler):
         message = f"{self.address_string()} {format % args}"
         logging.info(message)
 
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json; charset=utf-8')
-        self.end_headers()
-
 
     def do_POST(self):
         if self.headers.get('Content-Type') != 'application/json':
@@ -140,8 +135,8 @@ class HttpProcessor(BaseHTTPRequestHandler):
 
             set_metrics(json.loads(data))
             self.send_response(200)
-
-            self._set_headers()
+            self.send_header('Content-type', 'application/json; charset=utf-8')
+            self.end_headers()
             self.wfile.write(json.dumps({"status": "OK"}).encode("utf8"))
         except json.decoder.JSONDecodeError as e:
             tb_output = io.StringIO()
