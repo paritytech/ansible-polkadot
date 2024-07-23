@@ -12,8 +12,10 @@ ws_health_exporter_port: 8001
 ws_health_exporter_log_level: INFO
 ws_health_exporter_ws_check_interval: 10
 ws_health_exporter_ws_timeout: 60
-ws_health_exporter_node_max_unsynchronized_block_drift: 0
-ws_health_exporter_node_min_peers: 10
+ws_health_exporter_node_max_unsynchronized_block_drift: 0 # blocks, 0 - disabled
+ws_health_exporter_node_min_peers: 10 # peers
+ws_health_exporter_min_block_rate: 0.0 # blocks/second, 0.0 - disabled
+ws_health_exporter_block_rate_measurement_period: 600 # seconds
 
 ws_health_exporter_ws_urls:
   - ws://127.0.0.1:9944
