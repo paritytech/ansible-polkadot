@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        role-names: [node, ws_health_exporter]
+        role-names: [node, ws_health_exporter, nginx, node_backup ]
         molecule-drivers: [docker]
         # We test the latest version and minimum supported version
         ansible-versions: [8.0.0, 9.0.1]

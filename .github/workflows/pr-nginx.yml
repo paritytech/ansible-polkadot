@@ -5,6 +5,13 @@ on:
     paths:
       - roles/nginx/**
       - .github/**
+  push:
+    paths:
+      - roles/nginx/**
+      - .github/**
+    branches:
+      - '!main'
+      - '**'
 
 jobs:
   run-molecule-tests:

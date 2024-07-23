@@ -5,6 +5,13 @@ on:
     paths:
       - roles/node_backup/**
       - .github/**
+  push:
+    paths:
+      - roles/node_backup/**
+      - .github/**
+    branches:
+      - '!main'
+      - '**'
 
 jobs:
   run-molecule-tests:

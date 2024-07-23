@@ -5,6 +5,13 @@ on:
     paths:
       - roles/ws_health_exporter/**
       - .github/**
+  push:
+    paths:
+      - roles/ws_health_exporter/**
+      - .github/**
+    branches:
+      - '!main'
+      - '**'
 
 jobs:
   run-molecule-tests:
