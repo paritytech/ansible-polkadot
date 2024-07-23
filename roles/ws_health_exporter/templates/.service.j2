@@ -11,6 +11,8 @@ Environment="WSHE_WS_CHECK_INTERVAL={{ ws_health_exporter_ws_check_interval }}"
 Environment="WSHE_WS_TIMEOUT={{ ws_health_exporter_ws_timeout }}"
 Environment="WSHE_NODE_MAX_UNSYNCHRONIZED_BLOCK_DRIFT={{ ws_health_exporter_node_max_unsynchronized_block_drift }}"
 Environment="WSHE_NODE_MIN_PEERS={{ ws_health_exporter_node_min_peers }}"
+Environment="WSHE_MIN_BLOCK_RATE={{ ws_health_exporter_min_block_rate }}"
+Environment="WSHE_BLOCK_RATE_MEASUREMENT_PERIOD={{ ws_health_exporter_block_rate_measurement_period }}"
 
 ExecStart={{ _ws_health_exporter_venv }}/bin/python3 {{ _ws_health_exporter_file }}
 
