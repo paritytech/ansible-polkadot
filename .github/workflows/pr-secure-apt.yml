@@ -5,6 +5,13 @@ on:
     paths:
       - roles/secure_apt/**
       - .github/**
+  push:
+    paths:
+      - roles/secure_apt/**
+      - .github/**
+    branches:
+      - '!main'
+      - '**'
 
 jobs:
   run-molecule-tests:
