@@ -1,0 +1,25 @@
+galaxy_info:
+  author: Devops Team <devops-team@parity.io>
+  description: Substrate/Polkadot node deployment ansible role
+  company: paritytech
+  license: GPL-2.0-or-later
+
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: Debian
+      versions:
+      - all
+
+  galaxy_tags:
+    - parity
+    - validator
+    - parachain
+    - substarte
+    - polkadot
+    - kusama
+    - rococo
+    - collator
+    - rpc
+
+dependencies: []

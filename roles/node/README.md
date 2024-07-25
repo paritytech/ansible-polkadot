@@ -1,4 +1,4 @@
-# Substrate node deployment ansible role
+# Substrate/Polkadot node deployment ansible role
 
 The role can deploy a Substrate node.
 
