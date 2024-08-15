@@ -1,6 +1,6 @@
 ---
 
-ws_health_exporter_url: https://raw.githubusercontent.com/paritytech/scripts/0a2e6e9ba37799de60949acc5d7b4a0e875ae732/dockerfiles/ws-health-exporter/exporter.py
+ws_health_exporter_url: https://raw.githubusercontent.com/paritytech/scripts/9961136320c2454fe99ba4643c156becd84ae704/dockerfiles/ws-health-exporter/exporter.py
 ws_health_exporter_base_path: /opt/{{ _ws_health_exporter_name }}
 # user has to be created by the role user
 ws_health_exporter_user: polkadot
