@@ -4,24 +4,25 @@
 # Common
 #####################################################################################
 
-# It's used for naming of systemd unit files, binary files, key files etc.
+# It's used for naming systemd unit files, directories for binary files, key files, etc.
 node_app_name: "{{ node_chain }}"
-# A node will be ran with permissions of this user
+# A node will run with the permissions of this user.
 node_user: polkadot
-# if it's empty, the '(home directory of node_user)/.local/share/polkadot' directory will be used
+# If it's empty, the '(home directory of node_user)/.local/share/polkadot' directory will be used.
 node_data_root_path: ""
 
 ### Binary
-# You have to specify it in your playbook or inventory!
+# You have to specify it in your playbook or inventory! Required.
+# URL to download the Substrate binary, for example: "https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-VERSION/polkadot"
 node_binary: ""
 # Set it if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
 node_prepare_worker_binary: ""
 node_execute_worker_binary: ""
 
 node_binary_download_private_token: "{{ gitlab_private_token | default(omit) }}"
-# ID of the GPG public key that is used for signing the polkadot binaries
+# ID of the GPG public key used for signing the Polkadot binaries.
 node_binary_release_key_id: 9D4B2B6EB8F97156D19669A9FF0812D491B96798
-# GPG signature URL. When left empty, binary verification will not be executed
+# GPG signature URL. When left empty, binary verification will not be executed.
 node_binary_signature: ""
 # Set it if Polkadot uses separate binaries: https://github.com/paritytech/polkadot/pull/7337
 node_prepare_worker_binary_signature: ""
@@ -30,29 +31,16 @@ node_execute_worker_binary_signature: ""
 ### Node preferences
 # You can redefine any variables from playbooks directly
 # Values from the "_node_profiles" are used by default
-node_in_peers: "{{ _node_profiles[node_role].in_peers }}"
-node_out_peers: "{{ _node_profiles[node_role].out_peers }}"
+# Set memory limits
 node_memory_high: "{{ _node_profiles[node_role].memory_high }}"
 node_memory_max: "{{ _node_profiles[node_role].memory_max }}"
 
-### Role flow
-# Group of variables to manage the flow of the role
-node_binary_deployment: true
-node_chain_deployment: true
-node_systemd_deployment: true
-node_force_restart: false
-# 2 executions of the same role, 2 handlers with the same name are created, and the last one wins.
-# to avoid this set the node_handler_id, it can be set only as play variable not as the host variable.
-# see https://github.com/ansible/ansible/issues/76855
-node_handler_id: ""
-# Start service after playbook execution is completed
-node_start_service: true
+# Enable detailed log output. Includes displaying the log target, log level, and thread name.
+node_enable_detailed_log_output: true
 
-### File used for Ansible annotation
-# File name for prometheus node-exporter textfile collector
-# Example:  /var/lib/prometheus/node-exporter/substrate.prom
-node_prometheus_file_exporter_path: ""
-node_prometheus_file_exporter_event: node_role
+# Enable discovering the public IP of the node (i.e., behind NAT) and set the `--public-addr` flag.
+node_enable_public_ip_detection: true
+
 #####################################################################################
 # Relaychain
 #####################################################################################
@@ -60,38 +48,36 @@ node_prometheus_file_exporter_event: node_role
 ### Main preferences
 # It's used for telemetry
 node_public_name: "{{ inventory_hostname }}"
-# It's role of node. It can be "validator", "boot", "full", "rpc".
+# The role of the node. It can be "validator", "boot", "full", "rpc".
 node_role: full
-# You have to specify it in your playbook or inventory!
+# Chain name. Required.
 node_chain: ""
-# Set up name of a chainspec template file from "templates" folder or https url to file.
-# If you set up this option, the "node_chain" option will be ignored
+# Set the name of a chainspec template file from the "templates" folder or the HTTPS URL to the file.
+# If you set this option, the "node_chain" option will be ignored.
 node_chainspec: ""
-# It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
+# Link to the WASM runtime. It will be used by the "--wasm-runtime-overrides" CLI flag.
 node_wasm_runtime: ""
 
 ### Keys
 ## p2p key
 # If it's empty, the node will generate default key file
 node_p2p_private_key: ""
+# The public key is not used in the role, but it is useful to set for better search.
+node_p2p_public_key: ""
 
 ### Ports and addresses
-# Substrate changed the default rpc flags: https://github.com/paritytech/substrate/pull/13384
-# Port `9933` was replaced by combined port `9944`
-# If your node is still using the old binary with old RPC flags, please set this to true
-node_legacy_rpc_flags: false
 ## p2p
 node_p2p_bind_addr: "0.0.0.0"
 node_p2p_port: "30333"
+# Port used for the `--public-addr` flag. `node_enable_public_ip_detection` should be set to true.
 node_p2p_public_port: "{{ node_p2p_port }}"
-# Enable discovering public IP of the node (i.e., behind NAT) and set `--public-addr` flag
-node_enable_public_ip_detection: true
 # It works only for the 'boot' mode!
 node_p2p_ws_port: "30334"
 ## prometheus
 node_prometheus_port: "9615"
+# bind prometheus port to 0.0.0.0
 node_prometheus_external_enable: true
-## api
+## rpc (api)  port configurations
 node_rpc_port: "{{ '9933' if node_legacy_rpc_flags else node_rpc_ws_port }}"
 node_rpc_ws_port: "9944"
 node_ws_max_connections: "100"
@@ -99,15 +85,19 @@ node_ws_max_connections: "100"
 ### Node preferences
 node_paritydb_enable: false
 node_db_cache: ""
+# You can redefine any variables from playbooks directly
+# Values from the "_node_profiles" are used by default
+node_in_peers: "{{ _node_profiles[node_role].in_peers }}"
+node_out_peers: "{{ _node_profiles[node_role].out_peers }}"
+
 # amount of blocks to save state in the pruning mode
 # if you need the state pruning mode the recommended (default) value is 256
-# 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
+# 0 - the state pruning mode is disabled, keeping the state of all blocks ('--state-pruning archive')
 node_pruning: 256
 # You can specify any custom options as a list
 node_custom_options: []
 #  - "--wasm-execution Compiled"
 #  - "--rpc-methods Unsafe"
-node_enable_detailed_log_output: true
 
 ### Backup restoring
 # Can be "http", "tar" or "none". If it's "none", the role will not restore the blockstore of relaychain.
@@ -142,29 +132,19 @@ node_telemetry_url: wss:/telemetry.polkadot.io/submit/ 1
 node_log_trace_enable: false
 node_log_trace_config: 
   babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
-# custom labels to be added to journald logs. e.g. "chain=kusama team=kusama-statemint"
-node_syslog_labels: ""
-
-### Role flow
-# Group of variables to manage the flow of the role
-node_database_wipe: false
 
 #####################################################################################
 # Parachain
 #####################################################################################
 
 ### Main preferences
-# It's workaround to avoid the issue
-# https://github.com/paritytech/cumulus/issues/556
-# version Collator v5.3.0 and upper has fix, for previous version set to false
-node_parachain_has_name_fix: true
 # It's used for telemetry
 node_parachain_public_name: "{{ inventory_hostname }}"
-# It can be: "collator", "validator", "rpc" or "full".
+# It's role of node. It can be: "collator", "validator", "full", "rpc".
 node_parachain_role: ""
-# Chain
+# Chain name.
 node_parachain_chain: ""
-# Set up name of a chainspec file from "templates" folder or https url to file.
+# Set up name of a chainspec template file from "templates" folder or https url to file.
 # If you set up this option, the "node_parachain_chain" option will be ignored
 node_parachain_chainspec: ""
 # It has to be a link to wasm runtime. It will be used by the "--wasm-runtime-overrides" CLI flag
@@ -177,19 +157,22 @@ node_parachain_relay_chain_rpc_urls: []
 ## p2p key
 # If it's empty, the node will generate default key file
 node_parachain_p2p_private_key: ""
+# The public key is not used in the role, but it is useful to set for better search.
 node_parachain_p2p_public_key: ""
 
 ### Ports and addresses
 ## p2p
 node_parachain_p2p_bind_addr: "0.0.0.0"
 node_parachain_p2p_port: "30343"
+# Port used for the `--public-addr` flag. `node_enable_public_ip_detection` should be set to true.
 node_parachain_p2p_public_port: "{{ node_parachain_p2p_port }}"
 # It works only for the 'boot' mode!
 node_parachain_p2p_ws_port: "30344"
 ## prometheus
 node_parachain_prometheus_port: "9625"
+# bind prometheus port to 0.0.0.0
 node_parachain_prometheus_external_enable: true
-## api
+## rpc (api) port configurations
 node_parachain_rpc_port: "{{ '9943' if node_legacy_rpc_flags else node_parachain_rpc_ws_port }}"
 node_parachain_rpc_ws_port: "9954"
 node_parachain_ws_max_connections: "100"
@@ -201,6 +184,7 @@ node_parachain_db_cache: ""
 # Values from the "_node_profiles" are used by default
 node_parachain_in_peers: "25"
 node_parachain_out_peers: "25"
+
 # amount of blocks to save state in the pruning mode
 # if you need the state pruning mode the recommended (default) value is 256
 # 0 - the state pruning mode is disabled, keep the state of all blocks ('--state-pruning archive')
@@ -238,9 +222,50 @@ node_parachain_log_trace_enable: false
 node_parachain_log_trace_config: 
   babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
 
+
+#####################################################################################
+# Advanced options
+#####################################################################################
+# These options are used for the development process and do not need to be changed for production use.
+
 ### Role flow
 # Group of variables to manage the flow of the role
+node_binary_deployment: true
+node_chain_deployment: true
+node_systemd_deployment: true
+node_force_restart: false
+node_database_wipe: false
 node_parachain_database_wipe: false
+# If a role is called twice in one play, the node_handler_id should be set for each role.
+# See https://github.com/ansible/ansible/issues/76855
+node_handler_id: ""
+# Start service after playbook execution is completed
+node_start_service: true
+
+### File used for Ansible annotation
+# File name for prometheus node-exporter textfile collector
+# Example:  /var/lib/prometheus/node-exporter/substrate.prom
+node_prometheus_file_exporter_path: ""
+node_prometheus_file_exporter_event: node_role
+
+# custom labels to be added to journald logs. e.g. "chain=kusama team=kusama-statemint"
+node_syslog_labels: ""
+
+
+#####################################################################################
+# Deprecated variables
+#####################################################################################
+# These variables needed only for very old version on binary.
+
+# Substrate changed the default rpc flags: https://github.com/paritytech/substrate/pull/13384
+# Port `9933` was replaced by combined port `9944`
+# If your node is still using the old binary with old RPC flags, please set this to true
+node_legacy_rpc_flags: false
+
+# It's workaround to avoid the issue
+# https://github.com/paritytech/cumulus/issues/556
+# version Collator v0.5.3 and upper has fix, for previous version set to false
+node_parachain_has_name_fix: true
 
 #####################################################################################
 # Memory profiler
