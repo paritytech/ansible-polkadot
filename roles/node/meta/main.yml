@@ -18,7 +18,8 @@ galaxy_info:
     - substarte
     - polkadot
     - kusama
-    - rococo
+    - westend
+    - paseo
     - collator
     - rpc
 

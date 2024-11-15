@@ -14,8 +14,8 @@ node_prometheus_file_exporter_path: /tmp/substrate.prom
 node_enable_public_ip_detection: false
 
 # Relaychain
-node_chain: rococo
-node_chainspec: https://paritytech.github.io/chainspecs/rococo/relaychain/chainspec.json
+node_chain: paseo
+node_chainspec: https://paritytech.github.io/chainspecs/paseo/relaychain/chainspec.json
 node_chain_backup_restoring_type: none
 
 # Parachain
