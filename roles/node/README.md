@@ -71,7 +71,7 @@ Relaychain chain IDs:
 polkadot: "polkadot"
 kusama: "ksmcc3"
 westend: "westend2"
-rococo:  "rococo_v2_2"
+paseo:  "paseo"
 rococo-local: "rococo_local_testnet"
 ```
 
