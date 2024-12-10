@@ -36,7 +36,7 @@
         owner: root
         group: root
 
-    - name: node-backup | requirements | copy R2 config
+    - name: node-backup | requirements | copy rclone config
       ansible.builtin.template:
         src: rclone/rclone.conf.j2
         dest: /root/.config/rclone/rclone.conf

@@ -128,7 +128,9 @@ echo -e "\n---\n$(date +%Y-%m-%d\ %H:%M:%S) Start the '{{ item.id }}' backup\n--
 {% if item.type == 'gcp-rclone' %}
 remote="GCPbackups"
 {% elif item.type == 'r2-rclone' %}
-remote="R2backups"
+remote="S3backups"
+{% elif item.type == 's3-rclone' %}
+remote="S3backups"
 {% else %}
 {{ "backup type must be defined."/0 }}
 {% endif %}
