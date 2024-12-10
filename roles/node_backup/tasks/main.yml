@@ -23,7 +23,7 @@
     - path: "{{ _node_backup_log_path }}"
       user: root
     - path: "{{ _node_backup_venv_path }}"
-      user: root
+      user: "{{ node_backup_user }}"
   tags: [node-backup]
 
 - name: node-backup | requirements
