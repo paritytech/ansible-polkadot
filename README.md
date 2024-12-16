@@ -21,13 +21,13 @@ collections:
 If you want to install collections in the project space, you have to run:
 ```commandline
 mkdir collections
-ansible-polkadot collection install -f -r requirements.yml -p ./collections
+ansible-galaxy collection install -f -r requirements.yml -p ./collections
 ```
 
 If you want to install collections in the global space (`~/.ansible/collections`),
 you have to run:
 ```commandline
-ansible-polkadot collection install -f -r requirements.yml
+ansible-galaxy collection install -f -r requirements.yml
 ```
 
 ## Roles
