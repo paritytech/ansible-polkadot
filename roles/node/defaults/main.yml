@@ -224,9 +224,6 @@ node_parachain_telemetry_url: wss://telemetry.polkadot.io/submit/ 1
 node_parachain_log_trace_enable: false
 node_parachain_log_trace_config:
   babe=trace,imonline=trace,slots=trace,sync=trace,consensus=trace,client=trace,forks=trace,txpool=debug,afg=trace,sub-authority-discovery=debug,sc_offchain=trace,runtime=trace,staking=trace,runtime::election-provider=trace
-node_log_debug_enable: false
-node_log_debug_config:
-  parachain=debug,babe=debug,imonline=debug,slots=debug,sync=debug,consensus=debug,client=debug,forks=debug,txpool=debug,afg=debug,sub-authority-discovery=debug,sc_offchain=debug,runtime=debug,staking=debug,runtime::election-provider=debug
 
 #####################################################################################
 # Advanced options
