@@ -6,6 +6,14 @@ node_backup_r2_access_key_id: ""
 node_backup_r2_secret_access_key: ""
 node_backup_r2_api_url: ""
 
+# S3 Compatible configuration (defaults to filling with r2 configuration for backward compat)
+node_backup_s3_access_key_id: "{{ node_backup_r2_access_key_id }}"
+node_backup_s3_secret_access_key: "{{ node_backup_r2_secret_access_key }}"
+node_backup_s3_endpoint: "{{ node_backup_r2_api_url }}"
+node_backup_s3_region: ""
+# The rclone provider to use for the backup
+node_backup_s3_provider: Cloudflare
+
 node_backup_max_concurrent_requests: 50
 
 node_backup_schedule:
@@ -31,7 +39,7 @@ node_backup_targets: []
 #   # old way of backups. It takes more time to restore and backup
 #   # it's true by default
 #   tar: false
-#   # type of backup. can be 'gcp-native', 'gcp-rclone' or 'r2-rclone'
+#   # type of backup. can be 'gcp-native', 'gcp-rclone', 'r2-rclone' or 's3-rclone'
 #   type: 'gcp-rclone'
 #   # name of the bucket
 #   bucket_name: "backup"
