@@ -1,14 +1,20 @@
-{% if node_backup_targets | json_query('[].type') | intersect(_node_backup_r2_types) | length > 0 %}
-[R2backups]
+{% if node_backup_targets | json_query('[].type') | intersect(_node_backup_rclone_types) | length > 0 %}
+[S3backups]
 type = s3
-provider = Cloudflare
-access_key_id = {{ node_backup_r2_access_key_id }}
-secret_access_key = {{ node_backup_r2_secret_access_key }}
-endpoint = {{ node_backup_r2_api_url }}
+provider = {{ node_backup_s3_provider }}
+access_key_id = {{ node_backup_s3_access_key_id }}
+secret_access_key = {{ node_backup_s3_secret_access_key }}
+endpoint = {{ node_backup_s3_endpoint }}
+{% if node_backup_s3_region != "" %}
+region = {{ node_backup_s3_region }}
+{% endif %}
 acl = private
 upload_cutoff = 1024M
 upload_concurrency = {{ node_backup_max_concurrent_requests }}
 chunk_size = 256M
+{% if node_backup_s3_provider == "Cloudflare" %}
+no_check_bucket = true
+{% endif %}
 {% endif %}
 
 {% if node_backup_targets | json_query('[].type') | intersect(_node_backup_gcp_types) | length > 0 %}

@@ -5,6 +5,12 @@
   when: node_backup_targets | json_query('[].type') | intersect(_node_backup_r2_types) | length > 0 and ( node_backup_r2_access_key_id == '' or node_backup_r2_secret_access_key
     == '' or node_backup_r2_api_url == '' )
 
+- name: node-backup | test | check s3 configuration
+  ansible.builtin.fail:
+    msg: If the S3 backups are used, 'node_backup_s3_access_key_id', 'node_backup_s3_secret_access_key', 'node_backup_s3_endpoint' amd 'node_backup_s3_provider' variables have to be specified
+  when: node_backup_targets | json_query('[].type') | intersect(_node_backup_rclone_types) | length > 0 and ( node_backup_s3_access_key_id == '' or node_backup_s3_secret_access_key
+    == '' or node_backup_s3_endpoint == '' or node_backup_s3_provider == '' )
+
 - name: node-backup | test | check variables
   ansible.builtin.fail:
     msg: "'service_name', 'rpc_port', 'type' and 'bucket_name' fields have to be specified for each item in 'node_backup_targets'"
@@ -20,5 +26,5 @@
 - name: node-backup | test | check backup types
   ansible.builtin.fail:
     msg: "{{ item.type }} is not a valid backup type"
-  when: item.type not in (_node_backup_gcp_types + _node_backup_r2_types)
+  when: item.type not in (_node_backup_gcp_types + _node_backup_rclone_types)
   loop: "{{ node_backup_targets }}"

@@ -10,8 +10,9 @@ _node_backup_rclone_deb: https://downloads.rclone.org/v1.63.1/rclone-v1.63.1-lin
 
 _node_backup_r2_types: [r2-rclone]
 _node_backup_gcp_types: [gcp-native, gcp-rclone]
-_node_backup_rclone_types: [gcp-rclone, r2-rclone]
+_node_backup_rclone_types: [gcp-rclone, r2-rclone, s3-rclone]
 _node_backup_storages:
+  s3-rclone: s3
   r2-rclone: r2
   gcp-rclone: gcp
   gcp-native: gcp
