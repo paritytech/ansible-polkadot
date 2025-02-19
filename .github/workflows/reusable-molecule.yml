@@ -48,7 +48,7 @@ jobs:
         run: |
           set -e
           yamllint .
-          ansible-lint
+          ansible-lint --exclude .ansible/collections
         working-directory: "${{ github.repository }}/roles/${{ inputs.role-name }}"
       - name: Run molecule tests
         if: ${{ env.MOLECULE_IS_PRESENT }}
