@@ -23,11 +23,11 @@ jobs:
     uses: ./.github/workflows/reusable-check-version.yml
     with:
       compare-versions: false
-  deploy-galaxy:
-    needs: [run-molecule-tests, check-version]
-    uses: ./.github/workflows/reusable-galaxy-deploy.yml
-    secrets:
-      api-token: ${{ secrets.GALAXY_API_KEY }}
+  # deploy-galaxy:
+  #   needs: [run-molecule-tests, check-version]
+  #   uses: ./.github/workflows/reusable-galaxy-deploy.yml
+  #   secrets:
+  #     api-token: ${{ secrets.GALAXY_API_KEY }}
   create-git-tag:
     runs-on: ubuntu-22.04
     needs: [deploy-galaxy, check-version]
