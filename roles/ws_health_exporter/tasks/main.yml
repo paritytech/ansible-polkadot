@@ -68,4 +68,3 @@
         name: "{{ _ws_health_exporter_name }}"
         state: started
         enabled: true
-        daemon_reload: true
