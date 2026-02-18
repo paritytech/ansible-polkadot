@@ -20,36 +20,6 @@
         - alice
         - bob
 
-    - name: Restart ws-health-exporter before verify
-      ansible.builtin.systemd:
-        name: ws-health-exporter
-        state: restarted
-        daemon_reload: true
-
-    - name: Wait for exporter to start
-      ansible.builtin.pause:
-        seconds: 5
-
-    - name: Check ws-health-exporter service status
-      ansible.builtin.command: systemctl status ws-health-exporter
-      register: _exporter_status
-      changed_when: false
-      failed_when: false
-
-    - name: Print ws-health-exporter service status
-      ansible.builtin.debug:
-        var: _exporter_status.stdout_lines
-
-    - name: Get ws-health-exporter journal logs
-      ansible.builtin.command: journalctl -u ws-health-exporter --no-pager -n 30
-      register: _exporter_logs
-      changed_when: false
-      failed_when: false
-
-    - name: Print ws-health-exporter logs
-      ansible.builtin.debug:
-        var: _exporter_logs.stdout_lines
-
     - name: check ws health exporter
       ansible.builtin.uri:
         url: http://127.0.0.1:{{ ws_health_exporter_port }}/health/readiness
