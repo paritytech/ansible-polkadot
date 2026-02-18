@@ -20,6 +20,12 @@
         - alice
         - bob
 
+    - name: Restart ws-health-exporter before verify
+      ansible.builtin.systemd:
+        name: ws-health-exporter
+        state: restarted
+        daemon_reload: true
+
     - name: check ws health exporter
       ansible.builtin.uri:
         url: http://127.0.0.1:{{ ws_health_exporter_port }}/health/readiness
