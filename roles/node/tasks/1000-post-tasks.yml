@@ -1,8 +1,20 @@
 ---
-- name: Post tasks | Remove temporary directory
-  ansible.builtin.file:
-    path: "{{ _node_temp_dir.path }}"
-    state: absent
+- name: Post tasks | Find temporary directories
+  ansible.builtin.find:
+    paths: /tmp
+    patterns: "ansible.*{{ _node_temp_dir_suffix }}"
+    file_type: directory
+  register: _node_temp_dirs
   check_mode: false
   changed_when: false
-  when: _node_temp_dir.path is defined
+
+- name: Post tasks | Remove temporary directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ _node_temp_dirs.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  check_mode: false
+  changed_when: false
+  when: _node_temp_dirs.files | length > 0
