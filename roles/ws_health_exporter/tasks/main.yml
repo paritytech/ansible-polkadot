@@ -66,5 +66,7 @@
     - name: ws_health_exporter | start exporter service
       ansible.builtin.systemd:
         name: "{{ _ws_health_exporter_name }}"
-        state: started
+        state: restarted
         enabled: true
+        daemon_reload: true
+      changed_when: false
