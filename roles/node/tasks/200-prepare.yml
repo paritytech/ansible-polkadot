@@ -35,7 +35,7 @@
 - name: Prepare | Create temporary directory
   ansible.builtin.tempfile:
     state: directory
-    suffix: polkadot_temp_dir
+    suffix: "{{ _node_temp_dir_suffix }}"
   register: _node_temp_dir
   check_mode: false
   changed_when: false
