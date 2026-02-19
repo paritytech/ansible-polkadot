@@ -38,6 +38,7 @@
           - apscheduler==3.10.1
           - flask==3.0.0
           - environs==9.5.0
+          - marshmallow==3.26.2
           - waitress==2.1.2
         virtualenv: "{{ _ws_health_exporter_venv }}"
         virtualenv_command: python3 -m venv
@@ -68,3 +69,5 @@
         name: "{{ _ws_health_exporter_name }}"
         state: started
         enabled: true
+        daemon_reload: true
+      changed_when: false
