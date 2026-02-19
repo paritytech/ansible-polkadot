@@ -26,6 +26,7 @@
         packeges:
           - nginx
           - certbot
+          - logrotate
 
     - name: nginx | create directories
       ansible.builtin.file:
