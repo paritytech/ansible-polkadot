@@ -6,7 +6,7 @@ driver:
 platforms:
   - name: molecule-instance-node
     # DOCKER
-    image: paritytech/debian11:latest
+    image: paritytech/debian12:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     # need this for systemctl to work in Docker
     privileged: true

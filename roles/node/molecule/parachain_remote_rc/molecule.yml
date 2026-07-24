@@ -6,7 +6,7 @@ driver:
 platforms:
   - name: molecule-instance-node-parachain-remote-rc
     # DOCKER
-    image: paritytech/debian11:latest
+    image: paritytech/debian12:latest
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     privileged: true
     pre_build_image: true
