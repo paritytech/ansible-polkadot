@@ -28,7 +28,7 @@ pathspec==0.12.1
 platformdirs==4.2.2
 pluggy==1.5.0
 pycparser==2.22
-Pygments==2.18.0
+Pygments==2.20.0
 PyYAML==6.0.1
 referencing==0.35.1
 resolvelib==1.0.1
